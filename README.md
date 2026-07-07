@@ -1,5 +1,10 @@
 # Portfolio Analyzer
 
+[![CI](https://github.com/yohanncurmally/portfolio-analyzer/actions/workflows/ci.yml/badge.svg)](https://github.com/yohanncurmally/portfolio-analyzer/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![Read-only](https://img.shields.io/badge/broker%20access-read--only-brightgreen.svg)](#security--privacy)
+
 A **local, read-only** tool that connects to your brokerage, pulls your holdings, and
 produces an **interactive dashboard** plus a **candid, position-by-position analysis** —
 tailored to your own strategy, thesis, and how you invest (equities or options, passive

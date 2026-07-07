@@ -1,0 +1,5 @@
+# Developer tooling (not needed to just run the analyzer).
+#   python -m pip install -r requirements-dev.txt
+-r requirements.txt
+pytest>=8
+ruff>=0.6
