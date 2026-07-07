@@ -1,6 +1,6 @@
 # Trading / execution (future)
 
-Placeholder for the order-execution layer. **Not active** — the current setup is
+Placeholder for the order-execution layer. **Not active**; the current setup is
 read-only.
 
 SnapTrade's Robinhood integration is read-only, so live trading here will wait

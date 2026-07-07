@@ -153,7 +153,7 @@ class EnrichedSnapshot:
 
     @property
     def net_delta_notional(self) -> float:
-        """Delta-adjusted net directional $ exposure — the honest leverage number
+        """Delta-adjusted net directional $ exposure, the honest leverage number
         (raw controlled notional overstates it for OTM/short-dated legs)."""
         return sum(o.delta_notional or 0.0 for o in self.options)
 

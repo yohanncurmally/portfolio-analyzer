@@ -8,11 +8,11 @@ description: Pull the user's live brokerage portfolio (taxable + IRA + crypto) v
 Pulls the user's live holdings across all connected accounts (brokerage, IRA,
 crypto) read-only through **SnapTrade** or **Interactive Brokers**, enriches
 options with live spot prices and risk analytics, renders a dashboard, then
-delivers a candid, broker-agnostic deep dive.
+delivers a candid, broker-agnostic analysis.
 
 ## Repo
 
-All code lives in `<ABSOLUTE_PATH_TO_THIS_FOLDER>` — replace this with the real
+All code lives in `<ABSOLUTE_PATH_TO_THIS_FOLDER>`. Replace this with the real
 absolute path of the tool folder on this machine (run `pwd` from inside it).
 Use its virtualenv: `.venv/bin/python`. The `.env` there holds the broker creds.
 
@@ -37,7 +37,7 @@ Use its virtualenv: `.venv/bin/python`. The `.env` there holds the broker creds.
 2. **Read the data + surface the interactive dashboard.**
    - Open the newest `outputs/analysis_<ts>.json` (Read tool) for the machine-readable
      enriched figures.
-   - **Open the interactive HTML dashboard for the user** — it's self-contained
+   - **Open the interactive HTML dashboard for the user.** It's self-contained
      (offline, no CDNs): `open outputs/dashboard_<ts>.html` (macOS; use `start` on
      Windows, `xdg-open` on Linux). It has KPI cards (delta-leverage, TVaR, net Δ-$,
      cash), a prioritized action list, charts (allocation donut, Δ-$ by AI-cycle
@@ -51,36 +51,36 @@ Use its virtualenv: `.venv/bin/python`. The `.env` there holds the broker creds.
 
    Each option carries put-correct greeks and leverage economics (computed in
    `analysis/enrich.py` off the canonical BS lib in `shared/blackscholes.py`):
-   - `iv` — implied vol backed out of the mark (solved against the *correct* call/put
+   - `iv`: implied vol backed out of the mark (solved against the *correct* call/put
      pricer; see put-IV note below).
-   - `delta` — per-share, **signed for side**: long call `+`, long put `−`, shorts flip.
-   - `delta_notional` — delta-adjusted $ exposure = the **honest directional risk**
+   - `delta`: per-share, **signed for side**: long call `+`, long put `−`, shorts flip.
+   - `delta_notional`: delta-adjusted $ exposure, the **honest directional risk**
      (raw `notional` overstates it for OTM/short-dated legs).
-   - `carry_pct_yr` — annualized % the underlying must move in the option's favor to
+   - `carry_pct_yr`: annualized % the underlying must move in the option's favor to
      break even. Low = cheap leverage (ITM/LEAP); high = expensive (deep OTM). Legs
      ≥40%/yr get the `EXPENSIVE_CARRY` flag.
-   - `cycle_bucket` — AI capital-cycle role (G1/G2/G3A/G3B/NON; see `shared/ai_cycle.py`).
+   - `cycle_bucket`: AI capital-cycle role (G1/G2/G3A/G3B/NON; see `shared/ai_cycle.py`).
    Portfolio totals add `net_delta_notional`, `delta_leverage_x` (the leverage number
    to lead with), and `notional_by_bucket` (delta-$ grouped by cycle role).
 
-3. **Deep dive — for each material position** (sort by market value / notional):
+3. **Deep dive, for each material position** (sort by market value / notional):
    - State the live numbers: spot, strike, DTE, moneyness, MV, unrealized P/L,
      extrinsic (time value) at risk, controlled notional, **delta-$ (`delta_notional`),
      and carry/yr (`carry_pct_yr`)**.
    - **Carry/yr LEAP screen:** call out which legs are cheap vs. expensive leverage.
      For **long** legs, ITM/LEAP legs should show low carry; anything flagged
-     `EXPENSIVE_CARRY`/`LOTTERY` is the deep-OTM lottery-ticket profile — the first
+     `EXPENSIVE_CARRY`/`LOTTERY` is the deep-OTM lottery-ticket profile, the first
      candidate to roll ITM/out or close if the user prefers less-risky leverage.
    - **Premium sellers (short options): the framing flips.** If the user's thesis
-     (see `docs/target_portfolio.md`) says they *sell* premium — covered calls,
-     cash-secured puts, credit spreads — then for their **short** legs a high carry /
+     (see `docs/target_portfolio.md`) says they *sell* premium (covered calls,
+     cash-secured puts, credit spreads), then for their **short** legs a high carry or
      rich extrinsic is what they're *harvesting*, not bleeding. For those positions
      read: how much premium is captured, probability of assignment (short-leg delta ≈
-     P(ITM)), days to expiry, and margin/collateral tied up — not "time value at risk."
+     P(ITM)), days to expiry, and margin/collateral tied up, not "time value at risk."
      Long legs in the same book keep the long framing above. Let the recorded strategy,
      not the sign alone, decide the verdict.
    - If `docs/target_portfolio.md` has been filled in, compare against that thesis (the
-     5-bucket target model + how they trade) — is reality tracking the plan? **If it's
+     5-bucket target model plus how they trade): is reality tracking the plan? **If it's
      still the blank template, proactively offer to personalize** (see below) before or
      after this run, then describe the actual allocation in the meantime.
    - Give a **specific best move**: hold / trim / roll out / roll up-and-out to ITM
@@ -90,11 +90,11 @@ Use its virtualenv: `.venv/bin/python`. The `.env` there holds the broker creds.
 
 4. **Portfolio-level synthesis:**
    - Leverage: lead with **`delta_leverage_x`** (delta-adjusted net directional
-     exposure vs. net worth) — the honest number. Cite raw `controlled_notional` /
+     exposure vs. net worth), the honest number. Cite raw `controlled_notional` /
      `leverage_x` as the gross figure and explain the gap.
    - Time-value-at-risk: total extrinsic that decays to zero absent a move.
    - **AI-cycle positioning:** use `notional_by_bucket` to show delta-$ by cycle role
-     (G1 beaten SaaS / G2 megacap spenders / G3A self-funded picks&shovels / G3B
+     (G1 beaten SaaS, G2 megacap spenders, G3A self-funded picks&shovels, G3B
      debt-funded pure-plays). Situate the book on the spenders-vs-picks-and-shovels
      map: how much sits in the crowded/capex-blink-risk G3A bucket, how much in the
      highest-torque/first-to-break G3B, and whether that matches conviction. Flag any
@@ -102,10 +102,10 @@ Use its virtualenv: `.venv/bin/python`. The `.env` there holds the broker creds.
    - Concentration by underlying and by thematic bucket vs. target weights.
    - Expiry wall: capital/decision clusters by month.
    - **5-indicator cycle-turn watchlist** (frame the macro backdrop the book is
-     exposed to; pull latest data points where cheap): (1) capex blink — hyperscaler
-     guide cuts; (2) circular-financing strain — vendor-financing / SPV leverage;
-     (3) GPU pricing & utilization — rental rates, neocloud backlog (CRWV/NBIS);
-     (4) leverage layer — debt issuance by G3B names; (5) megacap multiples vs. ROIC.
+     exposed to; pull latest data points where cheap): (1) capex blink, hyperscaler
+     guide cuts; (2) circular-financing strain, vendor-financing / SPV leverage;
+     (3) GPU pricing & utilization, rental rates, neocloud backlog (CRWV/NBIS);
+     (4) leverage layer, debt issuance by G3B names; (5) megacap multiples vs. ROIC.
      Watch sequence #3 → #2 → #1 → #4. A turn here is what would break the G3A/G3B legs.
    - Specific, prioritized action list (what to do this week vs. this month).
 
@@ -123,7 +123,7 @@ doesn't apply to the `--source ibkr` path.)
 IV/delta come from `shared/blackscholes.py`, which is **put-correct**: `implied_vol`
 solves against the right call/put pricer and put delta is `N(d1)−1` (negative). Long
 puts show negative `delta`/`delta_notional`, so `net_delta_notional` nets hedges
-correctly. If you ever add a scenario/what-if tool, price puts off this same lib —
+correctly. If you ever add a scenario/what-if tool, price puts off this same lib,
 never a call-only solver.
 
 ## Personalization (offer it; keep it current)
@@ -134,17 +134,17 @@ Check `docs/target_portfolio.md`:
 - **If it's still the blank template**, proactively offer (once, not naggingly):
   _"Want me to tailor this to your actual strategy? Two minutes of your thesis and I'll
   make the buckets and every verdict specific to you."_ If yes, interview them
-  conversationally — thesis / conviction / **how they use options (buy vs. sell
-  premium, ITM/LEAPS vs. OTM, any rules)** / accounts & horizon / AI-cycle tilt — and
+  conversationally about thesis, conviction, **how they use options (buy vs. sell
+  premium, ITM/LEAPS vs. OTM, any rules)**, accounts and horizon, and AI-cycle tilt, and
   write it into `docs/target_portfolio.md`. Tag any `UNTAGGED` names into
   `shared/ai_cycle.py`.
 - **If it's filled in**, respect it: lead the read through *their* stated strategy, and
   when reality drifts from the plan, say so. If they mention a new position, rule, or
   view, update the doc so it stays current.
-- If the user ever says _"personalize this"_ / _"update my thesis"_, re-run the
+- If the user ever says _"personalize this"_ or _"update my thesis"_, re-run the
   interview and rewrite the relevant sections.
 
 ## Tone
 
-Be direct and unbiased — the user wants to know what's good AND what to change, not
+Be direct and unbiased. The user wants to know what's good AND what to change, not
 validation. Lead with risk. Not financial advice; frame as analysis.

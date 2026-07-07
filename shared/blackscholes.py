@@ -1,4 +1,4 @@
-"""Canonical Black-Scholes primitives — the single source of truth for pricing,
+"""Canonical Black-Scholes primitives: the single source of truth for pricing,
 delta, and implied vol across the repo.
 
 Every function is PUT-AWARE. Historically the BS helpers lived in scripts/scenario.py

@@ -2,7 +2,7 @@
 
 Connects (read-only) to a running IB Gateway or Trader Workstation (TWS) that has
 the API enabled, reads every position across all accounts under the login, and
-normalizes into shared.models — so analysis/, enrich, and the dashboards work
+normalizes into shared.models, so analysis/, enrich, and the dashboards work
 unchanged, exactly like the SnapTrade connector.
 
 Requires the `ib_async` package and a running Gateway/TWS. See

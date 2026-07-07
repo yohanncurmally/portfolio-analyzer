@@ -52,7 +52,7 @@ def render(es: EnrichedSnapshot, path: str) -> str:
     snap = es.snap
     fig, axes = plt.subplots(3, 2, figsize=(16, 18))
     fig.suptitle(
-        f"Portfolio Dashboard — {snap.timestamp[:10]}  |  "
+        f"Portfolio Dashboard  |  {snap.timestamp[:10]}  |  "
         f"Total ${snap.total_value:,.0f}  |  Controlled notional ${es.total_notional:,.0f}  "
         f"({es.total_notional / snap.total_value:.1f}x)",
         fontsize=15, fontweight="bold",

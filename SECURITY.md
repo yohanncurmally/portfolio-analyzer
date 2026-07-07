@@ -10,7 +10,7 @@ This tool is built to minimize what it can touch:
   broker's OAuth screen.
 - **Credentials never leave your machine.** API keys and user secrets live in a local
   `.env` file, which is `.gitignore`d. The tool talks directly to SnapTrade / IBKR from
-  your computer. There is **no hosted backend and no telemetry** — nothing is uploaded to
+  your computer. There is **no hosted backend and no telemetry**; nothing is uploaded to
   the project authors or anyone else.
 - **Your holdings stay local.** Snapshots and dashboards are written to `outputs/`, which
   is also `.gitignore`d.

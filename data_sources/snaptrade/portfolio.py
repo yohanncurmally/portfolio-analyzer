@@ -2,7 +2,7 @@
 
 SnapTrade response shapes vary slightly by broker; parsing here is defensive.
 Field names are based on the documented API but may need a small tweak once
-real Robinhood data flows — run scripts/pull_snapshot.py --debug to dump raw bodies.
+real Robinhood data flows; run scripts/pull_snapshot.py --debug to dump raw bodies.
 """
 
 from __future__ import annotations

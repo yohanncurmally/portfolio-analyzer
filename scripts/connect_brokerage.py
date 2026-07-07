@@ -3,7 +3,7 @@
 Requires SNAPTRADE_USER_ID + SNAPTRADE_USER_SECRET in .env (from step 1).
 Prints a one-time connection-portal URL. Open it in your browser, choose
 Robinhood, and authenticate. SnapTrade then syncs ALL accounts under that
-login — your taxable brokerage AND your IRA.
+login: your taxable brokerage AND your IRA.
 
 Usage:  .venv/bin/python scripts/connect_brokerage.py
 """

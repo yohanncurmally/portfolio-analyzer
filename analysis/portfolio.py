@@ -40,10 +40,10 @@ def report(snap: PortfolioSnapshot) -> None:
     line = "=" * 78
 
     print("\n" + line)
-    print(f"PORTFOLIO ANALYSIS  —  {snap.timestamp[:19]}  (source: {snap.source})")
+    print(f"PORTFOLIO ANALYSIS  |  {snap.timestamp[:19]}  (source: {snap.source})")
     print(line)
 
-    print(f"\nCOMBINED — {_money(total)} across {len(snap.accounts)} account(s)")
+    print(f"\nCOMBINED  {_money(total)} across {len(snap.accounts)} account(s)")
     print("-" * 78)
     print(f"  Equities: {_money(snap.equity_value):>15}  ({_pct(snap.equity_value, total):.1f}%)")
     print(f"  Options:  {_money(snap.options_value):>15}  ({_pct(snap.options_value, total):.1f}%)")
@@ -57,7 +57,7 @@ def report(snap: PortfolioSnapshot) -> None:
         print(line)
 
         if acct.equities:
-            print(f"\n  EQUITIES ({len(acct.equities)}) — {_money(acct.equity_value)}")
+            print(f"\n  EQUITIES ({len(acct.equities)})  {_money(acct.equity_value)}")
             print("  " + "-" * 76)
             print(f"  {'SYM':<8}{'QTY':>10}{'PRICE':>11}{'AVG':>11}"
                   f"{'MKT VAL':>14}{'U_P/L':>13}{'%PORT':>7}")
@@ -69,7 +69,7 @@ def report(snap: PortfolioSnapshot) -> None:
                       f"{_pct(p.market_value, total):>6.1f}%")
 
         if acct.options:
-            print(f"\n  OPTIONS ({len(acct.options)}) — {_money(acct.options_value)}")
+            print(f"\n  OPTIONS ({len(acct.options)})  {_money(acct.options_value)}")
             print("  " + "-" * 76)
             for o in sorted(acct.options, key=lambda x: abs(x.market_value), reverse=True):
                 dte = _dte(o.expiration)

@@ -6,14 +6,13 @@
 [![Read-only](https://img.shields.io/badge/broker%20access-read--only-brightgreen.svg)](#security--privacy)
 
 A **local, read-only** tool that connects to your brokerage, pulls your holdings, and
-produces an **interactive dashboard** plus a **candid, position-by-position analysis** —
-tailored to your own strategy, thesis, and how you invest (equities or options, passive
-or active, your risk tolerance).
+produces an **interactive dashboard** plus a **candid, position-by-position analysis**
+tailored to how you invest (equities or options, passive or active, your risk tolerance).
 
 It runs entirely on **your own computer**, under **your own broker login**. Nothing is
 hosted, nothing is uploaded, and it can **never place a trade or move money**.
 
-> ## ⚠️ Not financial advice
+> ## Not financial advice
 > This is a personal analysis and educational tool. It is **not** investment, financial,
 > tax, or legal advice, and its authors are **not** your broker, adviser, or fiduciary.
 > Nothing it outputs is a recommendation to buy, sell, or hold any security. Markets are
@@ -26,13 +25,13 @@ hosted, nothing is uploaded, and it can **never place a trade or move money**.
 ## What you get
 
 - **Interactive dashboard** (opens in your browser, works offline): total value,
-  leverage/risk, allocation, exposure by holding, an expiry wall for options, and a
-  sortable/filterable positions table where every row expands into a full drilldown.
-- **Written deep dive**: position by position — what's working, what's risky, and the
-  tradeoffs — plus a portfolio-level synthesis. Framed around *your* stated strategy.
+  leverage and risk, allocation, exposure by holding, an expiry wall for options, and a
+  sortable, filterable positions table where every row expands into a full drilldown.
+- **Written analysis**, position by position: what is working, what is risky, and the
+  tradeoffs, plus a portfolio-level summary. Framed around *your* stated strategy.
 - For options traders: put-correct greeks, delta-adjusted exposure, and a
-  cheap-vs-expensive-leverage (carry/yr) screen. For premium sellers, the read flips to
-  premium captured / assignment odds / collateral.
+  cheap-vs-expensive-leverage (carry/yr) screen. For premium sellers, the read switches
+  to premium captured, assignment odds, and collateral.
 
 ## How it works
 
@@ -47,35 +46,47 @@ local `.env` file that is gitignored and never leaves your machine.
 You do **not** need to be technical. Claude sets it up for you.
 
 1. Install [Claude Code](https://claude.com/claude-code).
-2. Get this repo onto your computer — either:
-   - **Download ZIP**: green **Code** button above → **Download ZIP** → unzip, or
+2. Get this repo onto your computer, either way:
+   - **Download ZIP**: green **Code** button above, then **Download ZIP**, then unzip, or
    - **Clone**: `git clone https://github.com/yohanncurmally/portfolio-analyzer.git`
 3. Open the folder in Claude Code and say:
 
    > **Read SETUP_FOR_CLAUDE.md and set me up.**
 
-Claude will check Python, build a sandboxed environment, walk you through connecting your
-broker (you log in yourself — it only ever gets read-only access), offer to personalize
-the analysis to your strategy, and run your first report. After that, just say
-**"analyze my portfolio"** any time, or **"let's personalize this"** to tune it.
+That short line is enough. The setup guide already walks Claude through everything and
+ends by running your first analysis.
 
-See **[SETUP_FOR_CLAUDE.md](SETUP_FOR_CLAUDE.md)** for the full, detailed walkthrough and
+If you want to be more explicit (recommended if you are not technical), paste this
+longer prompt instead:
+
+   > **Read SETUP_FOR_CLAUDE.md and set me up from scratch. I'm not technical, so run the
+   > steps for me and only stop to ask when you need something only I can do, like
+   > creating an account or logging into my broker. When you reach the personalization
+   > step, interview me about my strategy first. Then finish by running a full analysis
+   > and walking me through the dashboard and a position-by-position breakdown.**
+
+Claude will check Python, build a sandboxed environment, walk you through connecting your
+broker (you log in yourself, and it only ever gets read-only access), offer to
+personalize the analysis to your strategy, and run your first report. After that, just
+say **"analyze my portfolio"** any time, or **"let's personalize this"** to tune it.
+
+See **[SETUP_FOR_CLAUDE.md](SETUP_FOR_CLAUDE.md)** for the full walkthrough and
 **[START_HERE.md](START_HERE.md)** for the two-minute version.
 
 ## Personalize it to how you invest
 
-The analysis sharpens a lot when it knows your thesis. During setup (or any time later)
-Claude interviews you — passive vs. active, equities vs. options, buy vs. sell premium,
-risk tolerance, concentration, any rules you follow — and writes it into
-`docs/target_portfolio.md`. From then on the report is framed around *your* plan. A
-passive index investor sees allocation drift and concentration; an options seller sees
-premium capture and assignment risk. Same engine, different lens.
+The analysis is sharper when it knows your thesis. During setup (or any time later)
+Claude interviews you about how you invest: passive or active, equities or options, buy
+or sell premium, risk tolerance, concentration, and any rules you follow. It writes your
+answers into `docs/target_portfolio.md`. From then on the report is framed around your
+plan. A passive index investor sees allocation drift and concentration. An options seller
+sees premium capture and assignment risk. The engine is the same; the lens adapts to you.
 
 ## Security & privacy
 
 - **Read-only.** Both broker paths connect read-only. The tool cannot trade or move money.
-- **Your credentials stay local.** They live in `.env`, which is gitignored — never
-  commit it, never share it.
+- **Your credentials stay local.** They live in `.env`, which is gitignored. Never commit
+  it, never share it.
 - **Your holdings stay local.** Snapshots and dashboards are written to `outputs/`, which
   is also gitignored.
 - **Nothing is hosted.** There is no server, no account with us, no data collection.
@@ -86,9 +97,9 @@ premium capture and assignment risk. Same engine, different lens.
 
 - [Claude Code](https://claude.com/claude-code) (or Claude desktop coding mode)
 - Python 3.10+
-- A SnapTrade developer account (free for personal use) **or** Interactive Brokers with
+- A SnapTrade developer account (free for personal use), or Interactive Brokers with
   IB Gateway/TWS
 
 ## License
 
-[MIT](LICENSE) — free to use, modify, and share, with no warranty. See the disclaimer above.
+[MIT](LICENSE). Free to use, modify, and share, with no warranty. See the disclaimer above.

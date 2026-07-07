@@ -3,9 +3,9 @@
 These lock in the put-awareness that the module was created to fix: puts must be
 priced with the put formula, put delta must be negative, and implied_vol must solve
 against the correct pricer (a call-only solver returned ~0.478 for a put whose true
-vol was 0.55 — see shared/blackscholes.py docstring).
+vol was 0.55; see shared/blackscholes.py docstring).
 
-Pure stdlib math, no network, no third-party deps — fast and deterministic.
+Pure stdlib math, no network, no third-party deps; fast and deterministic.
 """
 
 from __future__ import annotations

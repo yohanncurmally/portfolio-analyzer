@@ -33,14 +33,14 @@ reads `ib.portfolio()` + `ib.accountValues()` for each managed account, and buil
 | TWS          | 7496 | 7497  |
 
 Optional env: `IBKR_HOST` (default `127.0.0.1`), `IBKR_PORT` (default `4001`),
-`IBKR_CLIENT_ID` (default `17` — any unused integer).
+`IBKR_CLIENT_ID` (default `17`, any unused integer).
 
 ## Notes
 
 - **Read-only by design** here (the connect call passes `readonly=True`). IBKR *does*
-  support programmatic trading if you later want it — that would live in `trading/`.
+  support programmatic trading if you later want it; that would live in `trading/`.
 - Unlike Robinhood, IBKR exposes option average cost directly, so P/L is available
   without reconstructing it from a transaction feed.
 - The simplest alternative is to connect IBKR through **SnapTrade** instead (SnapTrade
-  supports Interactive Brokers) — then no Gateway/TWS is needed and you use the default
+  supports Interactive Brokers), so no Gateway/TWS is needed and you use the default
   `--source snaptrade` path. See `SETUP_FOR_CLAUDE.md` for both options.

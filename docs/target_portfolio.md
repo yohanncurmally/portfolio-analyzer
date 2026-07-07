@@ -1,37 +1,37 @@
-# Target Portfolio (your thesis — fill this in, or leave blank)
+# Target Portfolio (your thesis; fill this in, or leave blank)
 
 This file is **optional**. The analysis works without it. If you fill it in, the
 skill will compare your live holdings against the plan you describe here ("is
 reality tracking the target?"). If you leave it as-is, the skill just describes
 your actual allocation and skips the comparison.
 
-**Easiest way to fill this in:** don't type it yourself — just tell Claude
+**Easiest way to fill this in:** don't type it yourself, just tell Claude
 _"let's personalize this"_ and it'll interview you conversationally (your thesis, how
 concentrated you are, whether you **buy or sell** options, your rules, your AI tilt)
 and write your answers here for you.
 
-Nothing here is uploaded or shared — it stays local (see Security in
+Nothing here is uploaded or shared; it stays local (see Security in
 `SETUP_FOR_CLAUDE.md`).
 
 > **⚠️ NOTE TO CLAUDE (the agent, not the user): everything below marked `EXAMPLE` is a
-> filled-in *sample* to show the intended shape only — it is NOT this user's portfolio,
+> filled-in *sample* to show the intended shape only; it is NOT this user's portfolio,
 > thesis, or rules. Do not treat any `EXAMPLE` ticker, weight, or number as a real
 > holding or a real preference. During the Step 5 personalization interview, replace the
 > `EXAMPLE` rows wholesale with the user's actual answers (and delete any that don't
 > apply). If this file still contains `EXAMPLE` markers at analysis time, treat the
-> thesis as UNSET — describe the real allocation and offer to personalize.**
+> thesis as UNSET; describe the real allocation and offer to personalize.**
 
 ---
 
 ## 1. Objective & constraints
 
 - **Goal:** _(EXAMPLE)_ aggressive long-term growth, concentrated in the AI buildout.
-- **Time horizon:** _(EXAMPLE)_ 5–10 years, comfortable holding through drawdowns.
-- **Risk tolerance:** _(EXAMPLE)_ high — can stomach a 30–40% drawdown on the book.
+- **Time horizon:** _(EXAMPLE)_ 5-10 years, comfortable holding through drawdowns.
+- **Risk tolerance:** _(EXAMPLE)_ high; can stomach a 30-40% drawdown on the book.
 - **Accounts in scope:** _(EXAMPLE)_ taxable brokerage + Roth IRA + a little crypto.
 - **Options stance:** _(EXAMPLE)_ heavy options user. **Buys** ITM/LEAP calls for
   leverage on core names (avoids short-dated OTM lottery tickets) **and sells** premium
-  for income — covered calls on longs, cash-secured puts to enter names, occasional
+  for income: covered calls on longs, cash-secured puts to enter names, occasional
   credit spreads. Options run up to ~60% of the book.
 
 ## 2. Target allocation buckets
@@ -63,23 +63,23 @@ target weight or share/contract count.
 If you invest around the AI buildout, the skill groups delta-$ exposure by role.
 The buckets (defined in `shared/ai_cycle.py`) are:
 
-- **G1** — beaten-down software / SaaS re-rating on AI adoption.
-- **G2** — megacap "spenders" funding the buildout from cash flow.
-- **G3A** — self-funded picks-and-shovels (chips, power, networking).
-- **G3B** — debt-funded pure-plays (highest torque, first to break).
-- **NON** — not part of the AI cycle.
+- **G1**: beaten-down software / SaaS re-rating on AI adoption.
+- **G2**: megacap "spenders" funding the buildout from cash flow.
+- **G3A**: self-funded picks-and-shovels (chips, power, networking).
+- **G3B**: debt-funded pure-plays (highest torque, first to break).
+- **NON**: not part of the AI cycle.
 
-_(EXAMPLE)_ how a filled-in tilt might read — replace with the user's real names/weights:
+_(EXAMPLE)_ how a filled-in tilt might read; replace with the user's real names/weights:
 
 | Bucket | Names the user leans into | Rough target weight |
 |---|---|---|
-| _(EXAMPLE)_ G3A (self-funded picks & shovels) | NVDA, AVGO, VRT, ANET | ~45% — overweight, core |
+| _(EXAMPLE)_ G3A (self-funded picks & shovels) | NVDA, AVGO, VRT, ANET | ~45%, overweight, core |
 | _(EXAMPLE)_ G2 (megacap spenders) | MSFT, META, GOOGL | ~20% |
 | _(EXAMPLE)_ G1 (beaten SaaS re-rating) | NOW, CRM | ~20% |
-| _(EXAMPLE)_ G3B (debt-funded pure-plays) | NBIS, CRWV | ~10% — small, high torque |
+| _(EXAMPLE)_ G3B (debt-funded pure-plays) | NBIS, CRWV | ~10%, small, high torque |
 | _(EXAMPLE)_ NON (non-AI) | cash + hedges | ~5% |
 
-Any ticker not tagged shows up as `UNTAGGED` in the output so you can classify it —
+Any ticker not tagged shows up as `UNTAGGED` in the output so you can classify it;
 add it to the `_BUCKETS` dict in `shared/ai_cycle.py`.
 
 ## 5. Catalyst calendar (optional)

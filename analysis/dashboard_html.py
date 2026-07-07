@@ -1,6 +1,6 @@
 """Interactive, self-contained HTML dashboard for an enriched snapshot.
 
-Emits a single .html file (no external CDNs — inline data + SVG charts + vanilla JS,
+Emits a single .html file (no external CDNs; inline data + SVG charts + vanilla JS,
 so it opens offline) with: KPI cards, allocation / AI-cycle-bucket / moneyness-vs-DTE /
 exposure-by-underlying / expiry-wall charts, and a sortable, filterable positions table
 where every row expands into a full per-position drilldown with a candid verdict.
@@ -20,30 +20,30 @@ from shared.ai_cycle import LABELS as BUCKET_LABELS
 
 
 def _verdict(o) -> tuple[str, str]:
-    """Return (tag, one-line rationale) — the candid per-position call."""
+    """Return (tag, one-line rationale): the candid per-position call."""
     f = set(o.flags)
     dte = o.dte if o.dte is not None else 999
     ext_pct = (o.extrinsic_value / abs(o.market_value)) if o.market_value else 0.0
     if dte < 0:
-        return ("EXPIRED?", "Past expiration in the feed — verify it actually settled/closed.")
+        return ("EXPIRED?", "Past expiration in the feed; verify it actually settled/closed.")
     if "LOTTERY" in f:
-        return ("CLOSE / ROLL", "Deep-OTM + short-dated lottery ticket — the exact profile to exit. "
+        return ("CLOSE / ROLL", "Deep-OTM + short-dated lottery ticket, the exact profile to exit. "
                 "Bank it or roll into an ITM/LEAP with real delta.")
     if "EXPENSIVE_CARRY" in f:
-        return ("DE-RISK", f"Carry {o.carry_pct_yr:.0f}%/yr — you're renting expensive leverage. "
+        return ("DE-RISK", f"Carry {o.carry_pct_yr:.0f}%/yr; you're renting expensive leverage. "
                 "Roll down-and-out (lower strike, more time) to cut the annualized cost.")
     if "SHORT_DATED" in f and ext_pct > 0.5:
-        return ("DECIDE NOW", f"{dte}d left and {ext_pct*100:.0f}% of value is decaying time — "
+        return ("DECIDE NOW", f"{dte}d left and {ext_pct*100:.0f}% of value is decaying time; "
                 "roll out or take it off before theta does.")
     if "SHORT_DATED" in f:
-        return ("DECIDE NOW", f"{dte}d to expiry — needs a hold/roll/close call this week.")
+        return ("DECIDE NOW", f"{dte}d to expiry; needs a hold/roll/close call this week.")
     if "HIGH_THETA" in f:
-        return ("TRIM / ROLL", f"{ext_pct*100:.0f}% of MV is time value under 120d — heavy theta bleed.")
+        return ("TRIM / ROLL", f"{ext_pct*100:.0f}% of MV is time value under 120d; heavy theta bleed.")
     if "LEAP" in f and (o.carry_pct_yr or 99) < 25:
-        return ("CORE HOLD", "Long-dated, cheap carry — this is the kind of leverage to keep.")
+        return ("CORE HOLD", "Long-dated, cheap carry; this is the kind of leverage to keep.")
     if o.moneyness is not None and o.moneyness >= 1.05:
-        return ("HOLD", "ITM with real intrinsic — lower-risk leg, let it work.")
-    return ("HOLD", "No acute flag — monitor against thesis and expiry.")
+        return ("HOLD", "ITM with real intrinsic; lower-risk leg, let it work.")
+    return ("HOLD", "No acute flag; monitor against thesis and expiry.")
 
 
 def _num(x):
@@ -110,21 +110,21 @@ def _build_data(es: EnrichedSnapshot) -> dict:
     lot = sorted({p["symbol"] for p in positions if "LOTTERY" in p["flags"]})
     exp = sorted({p["symbol"] for p in positions if "EXPENSIVE_CARRY" in p["flags"]})
     if sd:
-        actions.append(("THIS WEEK", f"Expiring <30d — hold/roll/close decision: {', '.join(sd)}"))
+        actions.append(("THIS WEEK", f"Expiring <30d, hold/roll/close decision: {', '.join(sd)}"))
     if lot:
         actions.append(("DE-RISK", f"Deep-OTM lottery tickets to exit/roll ITM: {', '.join(lot)}"))
     if exp:
-        actions.append(("DE-RISK", f"Expensive carry (>40%/yr) — roll down-and-out: {', '.join(exp)}"))
+        actions.append(("DE-RISK", f"Expensive carry (>40%/yr), roll down-and-out: {', '.join(exp)}"))
     top = underlyings[0] if underlyings else None
     if top and abs(top["delta_notional"]) / total > 0.6:
         actions.append(("CONCENTRATION",
                         f"{top['symbol']} is {abs(top['delta_notional'])/total:.2f}x NAV of delta-$ "
-                        "— single-name concentration risk."))
+                        ", single-name concentration risk."))
     if snap.cash / total < 0.10:
-        actions.append(("LIQUIDITY", f"Cash is {snap.cash/total*100:.0f}% of NAV — thin dry powder."))
+        actions.append(("LIQUIDITY", f"Cash is {snap.cash/total*100:.0f}% of NAV, thin dry powder."))
     dlev = es.net_delta_notional / total
     if dlev > 2.5:
-        actions.append(("LEVERAGE", f"Delta-adjusted exposure {dlev:.2f}x NAV — directional risk is high."))
+        actions.append(("LEVERAGE", f"Delta-adjusted exposure {dlev:.2f}x NAV, directional risk is high."))
 
     return {
         "meta": {"timestamp": snap.timestamp, "source": snap.source,
@@ -220,11 +220,11 @@ tr.row{cursor:pointer}tr.row:hover td{background:var(--panel2)}
   <div class="card"><h3>Delta-$ by AI-cycle bucket</h3><div id="buckets"></div></div>
   <div class="card"><h3>Moneyness vs. days-to-expiry <span class="muted">(bubble = delta-$)</span></h3><div id="scatter"></div></div>
   <div class="card"><h3>Delta-$ exposure by underlying (top 14)</h3><div id="unders"></div></div>
-  <div class="card full"><h3>Expiry wall — intrinsic (real) vs. extrinsic (decaying)</h3><div id="expiry"></div>
+  <div class="card full"><h3>Expiry wall: intrinsic (real) vs. extrinsic (decaying)</h3><div id="expiry"></div>
     <div class="lgd"><span><i class="dot" style="background:var(--blu)"></i>Intrinsic</span><span><i class="dot" style="background:var(--red)"></i>Extrinsic (time value at risk)</span></div></div>
 </div>
 <div class="card full">
-  <h3>Positions — click any row to drill down</h3>
+  <h3>Positions (click any row to drill down)</h3>
   <div class="controls">
     <input id="search" placeholder="Filter by ticker…" oninput="applyFilter()">
     <span class="chip" data-f="ITM">ITM</span><span class="chip" data-f="OTM">OTM</span>
@@ -266,7 +266,7 @@ document.getElementById('kpis').innerHTML=kpis.map(x=>`<div class="kpi"><div cla
 
 // ---- actions ----
 const bmap={'THIS WEEK':'b-week','DE-RISK':'b-derisk','CONCENTRATION':'b-conc','LIQUIDITY':'b-liq','LEVERAGE':'b-lev'};
-document.getElementById('actions').innerHTML=(D.actions.length?D.actions:[['OK','No acute flags — book is within tolerances.']])
+document.getElementById('actions').innerHTML=(D.actions.length?D.actions:[['OK','No acute flags; book is within tolerances.']])
  .map(a=>`<li><span class="badge ${bmap[a[0]]||''}">${a[0]}</span><span>${a[1]}</span></li>`).join('');
 
 // ---- SVG helpers ----

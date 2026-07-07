@@ -53,5 +53,5 @@ Everything downstream (enrich, dashboards, the skill) then works unchanged.
 - **Stay read-only.** No connector or script should ever place an order or move money.
 - **No secrets in git.** Never commit `.env` or real holdings.
 - **One implementation of the math.** All pricing/greeks/IV go through
-  `shared/blackscholes.py` (it is put-correct — don't reintroduce a call-only solver).
+  `shared/blackscholes.py` (it is put-correct; don't reintroduce a call-only solver).
 - Keep new runtime dependencies to a minimum and explain why in the PR.

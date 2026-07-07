@@ -1,7 +1,7 @@
 """STEP 1 of SnapTrade setup: register your SnapTrade end-user.
 
 Requires SNAPTRADE_CLIENT_ID and SNAPTRADE_CONSUMER_KEY in .env.
-Prints a userId + userSecret — copy BOTH into .env. The userSecret is shown
+Prints a userId + userSecret; copy BOTH into .env. The userSecret is shown
 only once and cannot be recovered (only reset).
 
 Usage:  .venv/bin/python scripts/register_snaptrade_user.py [user_id]
@@ -21,7 +21,7 @@ def main():
     print("\nSnapTrade user registered. Save these to your .env:\n")
     print(f"SNAPTRADE_USER_ID={user_id}")
     print(f"SNAPTRADE_USER_SECRET={secret}")
-    print("\n(The userSecret cannot be retrieved again — store it now.)\n")
+    print("\n(The userSecret cannot be retrieved again; store it now.)\n")
 
 
 if __name__ == "__main__":

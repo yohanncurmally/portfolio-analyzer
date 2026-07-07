@@ -19,12 +19,12 @@ approval button). It supports **Robinhood, Interactive Brokers, and 20+ other
 brokers**.
 
 Once you're set up, you can just say **"analyze my portfolio"** any time. During setup
-Claude will also offer to **tailor everything to your own strategy** — your thesis, how
-concentrated you are, and how you use options (including if you *sell* premium) — so the
+Claude will also offer to **tailor everything to your own strategy**: your thesis, how
+concentrated you are, and how you use options (including if you *sell* premium), so the
 dashboard and suggestions fit how you actually invest. You can do that then or later by
 saying **"let's personalize this."**
 
 ---
 
 *Everything stays on your computer. Your login and your holdings are never uploaded
-or shared. Nothing here is financial advice — it's analysis.*
+or shared. Nothing here is financial advice; it's analysis.*
