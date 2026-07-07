@@ -1,0 +1,9 @@
+snaptrade-python-sdk
+python-dotenv
+yfinance
+matplotlib
+pandas
+
+# Only needed if you connect Interactive Brokers directly (data_sources/ibkr).
+# Robinhood / SnapTrade users can ignore this.
+ib_async

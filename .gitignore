@@ -1,0 +1,26 @@
+# Secrets — NEVER commit these
+.env
+.env.*
+!.env.example
+
+# Live portfolio snapshots & generated dashboards (private holdings)
+outputs/*
+!outputs/.gitkeep
+
+# Your personal thesis, if you fill it in and don't want it public
+# (uncomment the next line to keep your filled-in thesis out of git)
+# docs/target_portfolio.md
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
