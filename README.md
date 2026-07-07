@@ -44,7 +44,7 @@ You do **not** need to be technical. Claude sets it up for you.
 1. Install [Claude Code](https://claude.com/claude-code).
 2. Get this repo onto your computer — either:
    - **Download ZIP**: green **Code** button above → **Download ZIP** → unzip, or
-   - **Clone**: `git clone https://github.com/<your-username>/portfolio-analyzer.git`
+   - **Clone**: `git clone https://github.com/yohanncurmally/portfolio-analyzer.git`
 3. Open the folder in Claude Code and say:
 
    > **Read SETUP_FOR_CLAUDE.md and set me up.**
