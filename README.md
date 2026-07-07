@@ -12,6 +12,10 @@ tailored to how you invest (equities or options, passive or active, your risk to
 It runs entirely on **your own computer**, under **your own broker login**. Nothing is
 hosted, nothing is uploaded, and it can **never place a trade or move money**.
 
+![Sample dashboard](docs/sample-dashboard.png)
+
+<sub>Sample dashboard with fabricated holdings and numbers, not a real portfolio.</sub>
+
 > ## Not financial advice
 > This is a personal analysis and educational tool. It is **not** investment, financial,
 > tax, or legal advice, and its authors are **not** your broker, adviser, or fiduciary.
