@@ -14,6 +14,10 @@ outputs/*
 # shipped template; your real tags.json stays local.
 tags.json
 
+# Your per-holding deep-dive write-ups (thesis + scenarios + rationale). Contains your
+# real views; writeups.example.json is the shipped template, writeups.json stays local.
+writeups.json
+
 # Your personal thesis, if you fill it in and don't want it public
 # (uncomment the next line to keep your filled-in thesis out of git)
 # docs/target_portfolio.md

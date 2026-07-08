@@ -93,7 +93,10 @@ Use its virtualenv: `.venv/bin/python`. The `.env` there holds the broker creds.
      an expiry wall, and a sortable/filterable options table where every row expands into
      a full drilldown** (all greeks, carry, extrinsic %, flags) with a candid per-position
      verdict (CLOSE/ROLL, DECIDE NOW, DE-RISK, CORE HOLD, HOLD). Table headers carry hover
-     tooltips explaining each metric. Options-only KPIs (delta-leverage, TVaR, net Δ-$) and
+     tooltips explaining each metric. It also shows a **"Deep-dive write-ups" section**: a
+     per-holding narrative (thesis, bull/base/bear cases, the rationale behind the call, and
+     what would change it) that you author into `writeups.json` (see Step 3a); it renders only
+     when that file has entries for names the book holds. Options-only KPIs (delta-leverage, TVaR, net Δ-$) and
      the options charts appear only when the book holds options; the bucket chart appears
      only when a meaningful share of the book sits in thesis buckets (not all in `other`),
      so an equities-only portfolio renders cleanly with no blank panels.
@@ -165,6 +168,28 @@ Use its virtualenv: `.venv/bin/python`. The `.env` there holds the broker creds.
      or LEAPS / close.
    - Flag near-term catalysts/earnings and any expiry within ~30 days that needs a
      decision now.
+
+3a. **Persist the deep-dive into `writeups.json` so it renders on the dashboard.** The
+   dashboard already shows an *algorithmic* verdict per option leg (CLOSE/ROLL, DE-RISK,
+   etc.). That's the fast read. The **"Deep-dive write-ups" section** is the judgment layer:
+   the rationale a reader can agree or disagree with. Write your per-holding analysis into
+   `writeups.json` at the repo root (gitignored; `writeups.example.json` is the shipped
+   template) so it appears on the dashboard instead of living only in chat. Schema:
+   `{"version":1, "writeups": {TICKER: {...}}}`, keyed by **underlying symbol** (one entry
+   covers the equity and all option legs of that name). Per entry, all optional, only present
+   fields render:
+   - `call`: short headline recommendation (CORE HOLD, DE-RISK, TRIM/ROLL, DECIDE NOW, HOLD).
+   - `one_liner`: the collapsed-row summary (falls back to a truncated thesis if omitted).
+   - `thesis`: why the position exists and how the book expresses it.
+   - `bull` / `base` / `bear`: the three scenario cases (upside / most-likely / what breaks it).
+   - `rationale`: **why the recommended call follows from the cases** (the point of the section).
+   - `invalidation`: the concrete thing that would flip the call, so it's falsifiable.
+   - `updated`: `YYYY-MM-DD`.
+   Write plainly (honour the user's no-em-dash / no-tropes style). State reasoning a reader can
+   push back on, not just a rating. Cover the material names (biggest weights first; the section
+   orders by book weight and only renders symbols the book holds). Then **re-render to bake the
+   write-ups into the HTML**: `python scripts/analyze.py --cached` (or `--stage render`). These
+   are analysis, not advice.
 
 4. **Portfolio-level synthesis** (include only the parts that fit the book; an
    equities-only or non-AI portfolio skips the leverage/TVaR/cycle items and leads with

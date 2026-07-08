@@ -1,0 +1,69 @@
+{
+  "_readme": [
+    "Worked example of the deep-dive write-ups, pre-filled for the fabricated demo book so",
+    "`python scripts/analyze.py --source demo` renders the write-ups section out of the box.",
+    "Copy this to writeups.json (gitignored) as a starting point, or let Claude author it for",
+    "your real holdings during a run. This is the JUDGMENT layer that sits on top of the",
+    "algorithmic verdict: not just a HOLD/DE-RISK rating, but the reasoning behind it so a",
+    "reader can agree or disagree on concrete grounds.",
+    "Keyed by underlying symbol (covers both the equity and any option legs of that name).",
+    "Only symbols the book actually holds get rendered; entries are ordered by book weight.",
+    "Each entry may carry (all optional, only present fields render):",
+    "  call:         short headline recommendation (CORE HOLD, DE-RISK, TRIM/ROLL, HOLD, ...).",
+    "  one_liner:    the collapsed-row summary; if omitted, the thesis is truncated for it.",
+    "  thesis:       why the position exists and how the book expresses it.",
+    "  bull/base/bear: the three scenario cases (upside / most-likely / what breaks it).",
+    "  rationale:    why the recommended call follows from the cases above.",
+    "  invalidation: the concrete thing that would change the call (so it's falsifiable).",
+    "  updated:      YYYY-MM-DD you last revised it.",
+    "Write plainly. State the reasoning so someone can push back on a specific claim, not the",
+    "rating. These are analysis, not advice."
+  ],
+  "version": 1,
+  "writeups": {
+    "NVDA": {
+      "call": "CORE HOLD",
+      "one_liner": "The toll booth on the whole buildout; self-funded, priced rich but earning into it.",
+      "thesis": "Held as the core picks-and-shovels position. Nvidia sells the compute every hyperscaler and neocloud is racing to install, and it funds itself from cash flow rather than debt, so it does not carry the financing risk the debt-funded infra names do. The position is the anchor of the AI-picks-shovels bucket.",
+      "bull": "Data-center capex keeps compounding, each GPU generation holds pricing and margin, and inference demand broadens the buyer base beyond the handful of hyperscalers. Earnings grow into the multiple and the stock re-rates on durability rather than scarcity.",
+      "base": "Revenue keeps growing but the year-over-year rate cools as the law of large numbers bites and competition (custom silicon, AMD) takes some share at the margin. The stock works, but more like a high-quality compounder than a moonshot.",
+      "bear": "A capex blink: one or two hyperscalers signal a pause to digest what they have built, and because the whole thesis is crowded into this one name, the de-rate is fast and violent even if the long-term story is intact.",
+      "rationale": "It stays core because it is the highest-quality expression of the thesis and self-funding removes the failure mode that worries me most (financing). The action is to hold, not add, because it is already a large single-name weight and the crowding cuts both ways.",
+      "invalidation": "A hyperscaler explicitly guiding capex down, or a second generation of custom silicon proving good-enough for training at scale, would move this from CORE HOLD to TRIM.",
+      "updated": "2026-07-07"
+    },
+    "IREN": {
+      "call": "DE-RISK",
+      "one_liner": "Miner-to-HPC pivot with real torque, but the balance sheet is the whole story.",
+      "thesis": "The single debt-funded infra name in the book: a bitcoin miner repurposing its power and shells into AI hosting. It is here for asymmetric upside on the pivot, not as a core holding, and it is explicitly the highest-torque, first-to-break sleeve.",
+      "bull": "The HPC hosting contracts land, utilization ramps, and the market re-rates it from a miner multiple to an infra multiple. Because it started small and levered, the move is large.",
+      "base": "The pivot progresses unevenly. Some contracts sign, financing stays available but expensive, and the stock chops with sentiment on rates and AI capex rather than on fundamentals.",
+      "bear": "Financing tightens. A single-customer or single-lender wobble, or a rate move, and a debt-funded buildout with thin coverage is the first thing to crack. This is the name that goes to zero in the bad scenario, not just down.",
+      "rationale": "The call is DE-RISK rather than exit because the upside is real and the position is sized as a bet, not a core. Trim into strength and keep it small enough that the zero-scenario is survivable. Do not let a winner grow into a position whose downside you cannot stomach.",
+      "invalidation": "Evidence the financing is secured through the buildout (a term loan closed, an anchor tenant signed) would upgrade it toward HOLD. Any sign of a covenant or refinancing problem would flip it to exit.",
+      "updated": "2026-07-07"
+    },
+    "TSLA": {
+      "call": "DECIDE NOW",
+      "one_liner": "AI-adjacent megacap held via a 72-day call; the clock is the risk, not the thesis.",
+      "thesis": "Tagged megacap AI as an adjacent bet on autonomy and robotics rather than a pure hyperscaler. The book expresses it through a call that is now inside three months to expiry, so the position is really a bet on a move landing on a schedule.",
+      "bull": "A near-term catalyst (delivery beat, robotaxi or FSD milestone) moves the underlying enough that the call finishes well in the money and the leverage pays off.",
+      "base": "The stock drifts. The thesis takes longer than the option has left, and theta grinds the extrinsic away even if the direction is eventually right.",
+      "bear": "A disappointment inside the window and the call expires near worthless. Being right on the company but wrong on the timing still loses the whole premium.",
+      "rationale": "DECIDE NOW because the structure, not the view, is the problem: a medium-term thesis on a short-dated option. Either roll out to a longer expiry (or down to a lower strike) to buy the time the thesis needs, or take the position off. Do not let it ride into the theta cliff on autopilot.",
+      "invalidation": "Roll it and this becomes a HOLD on the underlying thesis. A dated, credible catalyst inside the window would justify keeping the current expiry.",
+      "updated": "2026-07-07"
+    },
+    "CRWD": {
+      "call": "HOLD",
+      "one_liner": "AI-software compounder held via an in-the-money LEAP; cheap leverage, let it work.",
+      "thesis": "Core AI-software exposure: a security platform applying AI to a large and growing book of business. The book holds it through a longer-dated in-the-money call, so the leverage is cheap and the carry is low. This is execution risk, not a capex-cliff bet.",
+      "bull": "Platform consolidation continues, net retention stays high, and AI features expand the wallet. The LEAP tracks the underlying nearly one-for-one on the way up with a fraction of the capital.",
+      "base": "Steady double-digit growth with the occasional multiple wobble on rates or a security-sector re-rate. The position works, patience required.",
+      "bear": "A growth stumble or a valuation reset in high-multiple software drags it down, and even an in-the-money call gives back real value.",
+      "rationale": "HOLD because it already screens as the kind of leverage to keep: long-dated, in the money, low carry. Nothing to do but monitor it against the thesis and roll well before expiry. This is what a good options position is supposed to look like.",
+      "invalidation": "A break in net-retention or a competitive share loss would move it toward TRIM. Carry creeping up as expiry approaches is the cue to roll, not to worry about the thesis.",
+      "updated": "2026-07-07"
+    }
+  }
+}

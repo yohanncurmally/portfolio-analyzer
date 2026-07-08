@@ -14,6 +14,7 @@ in lockstep. Per-position greeks/carry/bucket/flags come straight from analysis.
 from __future__ import annotations
 
 import json
+import os
 from collections import defaultdict
 from datetime import datetime
 
@@ -133,6 +134,35 @@ def _num(x):
     return None if x is None else round(float(x), 4)
 
 
+# Per-holding narrative write-ups: the judgment layer on top of the algorithmic verdict.
+# Authored by Claude during the skill run and keyed by underlying symbol. Optional; an
+# absent file just hides the section. Each entry may carry: call (headline recommendation),
+# one_liner, thesis, bull/base/bear (scenario cases), rationale (why the call follows), and
+# invalidation (what would change the call). Only fields that are present get rendered.
+_WRITEUPS_PATH = os.environ.get("PORTFOLIO_WRITEUPS", "writeups.json")
+_WRITEUPS_EXAMPLE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "writeups.example.json")
+
+
+def _load_writeups(source: str) -> dict:
+    """Load writeups.json (env PORTFOLIO_WRITEUPS overrides the path). For the demo book we
+    fall back to the shipped writeups.example.json so a fresh clone renders the section out of
+    the box; for a real book only the user's own file is used (absent -> section hidden)."""
+    path = _WRITEUPS_PATH
+    if not os.path.exists(path) and source == "demo" and os.path.exists(_WRITEUPS_EXAMPLE):
+        path = _WRITEUPS_EXAMPLE
+    if not os.path.exists(path):
+        return {}
+    try:
+        with open(path) as f:
+            data = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    wu = data.get("writeups", data)
+    return wu if isinstance(wu, dict) else {}
+
+
 def _build_data(es: EnrichedSnapshot) -> dict:
     snap = es.snap
     total = snap.total_value or 1.0
@@ -178,6 +208,35 @@ def _build_data(es: EnrichedSnapshot) -> dict:
 
     has_options = bool(positions)
     has_equities = bool(equities)
+
+    # ---- deep-dive write-ups (Claude-authored narrative, keyed by underlying symbol) ----
+    # We only surface a write-up for a symbol the book actually holds, and order them by
+    # the name's weight in the book (equity MV + option delta-$) so the biggest bets lead.
+    book_weight: dict[str, float] = defaultdict(float)
+    for e in equities:
+        book_weight[e["symbol"]] += abs(e["mv"] or 0.0)
+    for p in positions:
+        book_weight[p["symbol"]] += abs(p["delta_notional"] or p["mv"] or 0.0)
+    writeups = []
+    for sym, w in _load_writeups(snap.source).items():
+        if sym not in book_weight or not isinstance(w, dict):
+            continue
+        writeups.append({
+            "symbol": sym,
+            "weight": round(book_weight[sym]),
+            "bucket": cycle_bucket(sym),
+            "call": w.get("call") or w.get("verdict") or "",
+            "one_liner": w.get("one_liner") or w.get("summary") or "",
+            "thesis": w.get("thesis") or "",
+            "bull": w.get("bull") or w.get("bull_case") or "",
+            "base": w.get("base") or w.get("base_case") or "",
+            "bear": w.get("bear") or w.get("bear_case") or "",
+            "rationale": w.get("rationale") or w.get("why") or "",
+            "invalidation": w.get("invalidation") or w.get("what_would_change") or "",
+            "updated": w.get("updated") or "",
+        })
+    writeups.sort(key=lambda x: -x["weight"])
+    has_writeups = bool(writeups)
 
     # ---- whole-book exposure (equity MV + option delta-$), portfolio-agnostic ----
     # pct is each bucket's SHARE OF TOTAL EXPOSURE (so the buckets compose to ~100%),
@@ -258,7 +317,7 @@ def _build_data(es: EnrichedSnapshot) -> dict:
         "meta": {"timestamp": snap.timestamp, "source": snap.source,
                  "generated": datetime.now().strftime("%Y-%m-%d %H:%M")},
         "shape": {"has_options": has_options, "has_equities": has_equities,
-                  "show_buckets": show_buckets},
+                  "show_buckets": show_buckets, "has_writeups": has_writeups},
         "totals": {
             "total_value": round(total), "equity_value": round(snap.equity_value),
             "options_value": round(snap.options_value), "cash": round(snap.cash),
@@ -280,6 +339,7 @@ def _build_data(es: EnrichedSnapshot) -> dict:
         "taxonomy": taxonomy_map(),
         "buckets": buckets, "exposure": exposure, "expiry": expiry,
         "equities": equities, "positions": positions, "actions": actions,
+        "writeups": writeups,
     }
 
 
@@ -357,10 +417,33 @@ tr.row{cursor:pointer}tr.row:hover td{background:var(--panel2)}
 .blgd{margin-top:12px;border-top:1px solid var(--line);padding-top:10px;font-size:11.5px;color:var(--mut)}
 .blgd div{display:flex;gap:8px;padding:3px 0;align-items:flex-start}
 .blgd .code{font-weight:700;min-width:150px;flex:none}
+.wu{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;overflow:hidden;background:var(--panel2)}
+.wu-h{display:flex;gap:12px;align-items:center;padding:12px 14px;cursor:pointer;user-select:none}
+.wu-h:hover{background:var(--panel)}
+.wu-h .sym{font-weight:700;font-size:15px;min-width:74px;display:inline-flex;gap:6px;align-items:center}
+.wu-h .ol{color:var(--mut);font-size:12.5px;flex:1;white-space:normal}
+.wu-h .wt{color:var(--mut);font-size:11px;white-space:nowrap;text-align:right}
+.wu-h .car{font-size:16px;color:var(--mut);transition:transform .15s}
+.wu-h.open .car{transform:rotate(90deg)}
+.wu-b{padding:0 16px 16px;display:none}.wu-b.open{display:block}
+.wu-thesis{color:var(--tx);line-height:1.6;margin:8px 0 14px;white-space:normal}
+.cases{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:14px}
+.case{border-radius:8px;padding:10px 12px;border:1px solid var(--line);background:var(--panel);white-space:normal;line-height:1.55;font-size:12.5px}
+.case .cl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.case.bull{border-top:2px solid var(--grn)}.case.bull .cl{color:var(--grn)}
+.case.base{border-top:2px solid var(--blu)}.case.base .cl{color:var(--blu)}
+.case.bear{border-top:2px solid var(--red)}.case.bear .cl{color:var(--red)}
+.wu-note{border-left:3px solid var(--org);background:#0d1117;padding:10px 14px;border-radius:6px;margin-bottom:10px;line-height:1.6;white-space:normal}
+.wu-note.inval{border-left-color:var(--pur)}
+.wu-note .nl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--mut);margin-bottom:4px}
 </style></head><body><div id="tt"></div><div class="wrap">
 <h1>Portfolio Dashboard</h1><div class="sub" id="sub"></div>
 <div class="kpis" id="kpis"></div>
 <div class="card full" style="margin-bottom:22px"><h3>Prioritized actions</h3><ul class="actions" id="actions"></ul></div>
+<div class="card full" id="card-writeups" style="margin-bottom:22px">
+  <h3>Deep-dive write-ups <span class="muted">(click a name for the full thesis, bull / base / bear cases, and the rationale behind the call)</span></h3>
+  <div id="writeups"></div>
+</div>
 <div class="grid">
   <div class="card" id="card-alloc"><h3>Asset allocation</h3><div id="alloc"></div><div class="lgd" id="alloc-lgd"></div></div>
   <div class="card" id="card-buckets"><h3>Exposure by thesis bucket <span class="muted">(whole book: equity + option delta-$)</span></h3><div id="buckets"></div><div class="blgd" id="buckets-lgd"></div></div>
@@ -394,6 +477,7 @@ function money(n){if(n==null)return '—';const s=n<0?'-':'';return s+'$'+Math.a
 function k(n){if(n==null)return '—';const s=n<0?'-':'';const a=Math.abs(n);return s+'$'+(a>=1000?(a/1000).toFixed(0)+'k':Math.round(a));}
 function pct(n,d){return n==null?'—':(n).toFixed(d==null?1:d)+'%';}
 function num(n,d){return n==null?'—':n.toFixed(d==null?2:d);}
+function esc(s){return (s==null?'':String(s)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
 const clr=v=>v>0?'pos':v<0?'neg':'';
 const hide=id=>{const e=document.getElementById(id);if(e)e.style.display='none';};
 // Bucket labels/colors come from the taxonomy in the data payload (thesis-driven,
@@ -508,6 +592,36 @@ if(S.has_options&&D.expiry.length){(function(){const E=D.expiry;
   txt(x+pw/2,H0-hi-he-4,k(m.intrinsic+m.extrinsic),{anchor:'middle',fs:9},s,'#e6edf3');
   txt(x+pw/2,H0+25,m.count+' legs',{anchor:'middle',fs:8},s);});
  document.getElementById('expiry').appendChild(s);})();}else{hide('card-expiry');}
+
+// ---- deep-dive write-ups ----
+if(S.has_writeups&&D.writeups.length){
+ const wc=document.getElementById('writeups');
+ const callCls=v=>{v=(v||'').toUpperCase();
+  return /CLOSE|DE-?RISK|EXIT|SELL|CUT/.test(v)?'t-close'
+   :/TRIM|DECIDE|ROLL|REDUCE/.test(v)?'t-now'
+   :/CORE|ADD|BUY|ACCUMULATE/.test(v)?'t-core':'t-hold';};
+ const caseBox=(cls,label,txt)=>txt?`<div class="case ${cls}"><div class="cl">${label}</div>${esc(txt)}</div>`:'';
+ const noteBox=(cls,label,txt)=>txt?`<div class="wu-note ${cls}"><div class="nl">${label}</div>${esc(txt)}</div>`:'';
+ wc.innerHTML=D.writeups.map((w,i)=>{
+  const tag=w.call?`<span class="tag ${callCls(w.call)}">${esc(w.call)}</span>`:'';
+  const cases=[caseBox('bull','Bull case',w.bull),caseBox('base','Base case',w.base),caseBox('bear','Bear case',w.bear)].join('');
+  const ol=w.one_liner||(w.thesis.length>140?w.thesis.slice(0,140)+'…':w.thesis);
+  return `<div class="wu">
+   <div class="wu-h" data-i="${i}">
+     <span class="sym"><span style="color:${tcolor(w.bucket)}">●</span>${esc(w.symbol)}</span>
+     ${tag}<span class="ol">${esc(ol)}</span>
+     <span class="wt">${k(w.weight)}${w.updated?' · '+esc(w.updated):''}</span>
+     <span class="car">›</span>
+   </div>
+   <div class="wu-b" id="wu-${i}">
+     ${w.thesis?`<div class="wu-thesis">${esc(w.thesis)}</div>`:''}
+     ${cases?`<div class="cases">${cases}</div>`:''}
+     ${noteBox('','Why this call',w.rationale)}
+     ${noteBox('inval','What would change this',w.invalidation)}
+   </div></div>`;}).join('');
+ wc.querySelectorAll('.wu-h').forEach(h=>h.onclick=()=>{
+   const b=document.getElementById('wu-'+h.dataset.i);b.classList.toggle('open');h.classList.toggle('open');});
+}else{hide('card-writeups');}
 
 // ---- equities table ----
 const EQH=/*__EQHELP__*/;
