@@ -47,13 +47,21 @@ def _load_cached() -> PortfolioSnapshot:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--cached", action="store_true", help="use most recent cached snapshot")
-    ap.add_argument("--source", choices=["snaptrade", "ibkr"], default="snaptrade",
-                    help="live data source (default: snaptrade). ibkr needs IB Gateway/TWS running.")
+    ap.add_argument("--source", choices=["snaptrade", "ibkr", "demo"], default="snaptrade",
+                    help="data source (default: snaptrade). 'demo' uses fabricated sample "
+                         "data with no broker or network. ibkr needs IB Gateway/TWS running.")
     ap.add_argument("--debug", action="store_true")
     args = ap.parse_args()
 
+    spots = None
     if args.cached:
         snap = _load_cached()
+    elif args.source == "demo":
+        from data_sources.demo.portfolio import fetch_snapshot, SPOTS
+        snap = fetch_snapshot(debug=args.debug)
+        spots = SPOTS
+        print("\n*** DEMO MODE: fabricated sample data. No broker is connected and nothing "
+              "is fetched from the network. Numbers are illustrative, not advice. ***")
     elif args.source == "ibkr":
         from data_sources.ibkr.portfolio import fetch_snapshot
         snap = fetch_snapshot(debug=args.debug)
@@ -62,7 +70,7 @@ def main() -> None:
         snap = fetch_snapshot(debug=args.debug)
 
     report(snap)
-    es = enrich(snap)
+    es = enrich(snap, spots=spots)
 
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     os.makedirs("outputs", exist_ok=True)

@@ -105,6 +105,7 @@ def enrich_option(o, spot: Optional[float]) -> OptionAnalytics:
         else:
             carry_pct_yr = (1.0 - (o.strike - o.mark) / spot) / T * 100
 
+    is_long = o.side == "long"
     flags: list[str] = []
     if dte is not None and dte <= 30:
         flags.append("SHORT_DATED")
@@ -115,12 +116,14 @@ def enrich_option(o, spot: Optional[float]) -> OptionAnalytics:
             flags.append("OTM")
         if is_call and moneyness >= 1.05:
             flags.append("ITM")
-    # time-value-at-risk: extrinsic as a share of position MV
-    if o.market_value and extrinsic_value / abs(o.market_value) > 0.6 and (dte or 999) < 120:
+    # HIGH_THETA / LOTTERY / EXPENSIVE_CARRY are long-holder risks: you pay the time
+    # decay and the carry. For a short (premium-selling) leg those work in your favor,
+    # so they are not flagged as problems here (the narrative reads shorts separately).
+    if is_long and o.market_value and extrinsic_value / abs(o.market_value) > 0.6 and (dte or 999) < 120:
         flags.append("HIGH_THETA")
-    if moneyness is not None and is_call and moneyness < 0.80 and (dte or 999) < 60:
+    if is_long and moneyness is not None and is_call and moneyness < 0.80 and (dte or 999) < 60:
         flags.append("LOTTERY")  # deep OTM + short dated
-    if carry_pct_yr is not None and carry_pct_yr >= 40:
+    if is_long and carry_pct_yr is not None and carry_pct_yr >= 40:
         flags.append("EXPENSIVE_CARRY")  # paying a lot per year for this leverage
 
     return OptionAnalytics(
@@ -166,10 +169,11 @@ class EnrichedSnapshot:
         return dict(sorted(out.items(), key=lambda kv: -abs(kv[1])))
 
 
-def enrich(snap: PortfolioSnapshot) -> EnrichedSnapshot:
-    underlyings = [o.symbol for a in snap.accounts for o in a.options]
-    equities = [e.symbol for a in snap.accounts for e in a.equities]
-    spots = fetch_spots(underlyings + equities)
+def enrich(snap: PortfolioSnapshot, spots: Optional[dict[str, float]] = None) -> EnrichedSnapshot:
+    if spots is None:
+        underlyings = [o.symbol for a in snap.accounts for o in a.options]
+        equities = [e.symbol for a in snap.accounts for e in a.equities]
+        spots = fetch_spots(underlyings + equities)
 
     flat: list[OptionAnalytics] = []
     by_acct: dict[str, list[OptionAnalytics]] = {}

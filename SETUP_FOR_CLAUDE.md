@@ -31,6 +31,22 @@ Nothing here is financial advice; it's analysis.
 
 ---
 
+## Optional: show them the demo first (no account needed)
+
+If the user wants to **see the output before connecting a broker**, you can run the whole
+pipeline against a fabricated sample portfolio. It is offline (no network, no login) and
+evergreen. After Step 2 (once `.venv` exists and dependencies are installed), run:
+
+```bash
+.venv/bin/python scripts/analyze.py --source demo
+```
+
+This writes a real dashboard and analysis into `outputs/` from invented holdings, so they
+can see exactly what they'll get. It is not their data and not advice. Then continue with
+Step 3 to connect their actual broker.
+
+---
+
 ## The 6 steps (Claude runs these)
 
 1. Make sure Python is installed.
