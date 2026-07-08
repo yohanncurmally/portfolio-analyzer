@@ -1,7 +1,10 @@
-# Secrets — NEVER commit these
+# Secrets: NEVER commit these
 .env
 .env.*
 !.env.example
+
+# Intermediate HTML for the README sample image (only the .png is committed)
+docs/sample-dashboard.html
 
 # Live portfolio snapshots & generated dashboards (private holdings)
 outputs/*
