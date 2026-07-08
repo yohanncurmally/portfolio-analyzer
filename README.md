@@ -63,11 +63,11 @@ ends by running your first analysis.
 If you want to be more explicit (recommended if you are not technical), paste this
 longer prompt instead:
 
-   > **Read SETUP_FOR_CLAUDE.md and set me up from scratch. I'm not technical, so run the
-   > steps for me and only stop to ask when you need something only I can do, like
-   > creating an account or logging into my broker. When you reach the personalization
-   > step, interview me about my strategy first. Then finish by running a full analysis
-   > and walking me through the dashboard and a position-by-position breakdown.**
+   > **Read SETUP_FOR_CLAUDE.md and set me up from scratch. Run the steps for me and only
+   > stop to ask when you need something only I can do, like creating an account or logging
+   > into my broker. When you reach the personalization step, interview me about my strategy
+   > first. Then finish by running a full analysis and walking me through the dashboard and a
+   > position-by-position breakdown.**
 
 Claude will check Python, build a sandboxed environment, walk you through connecting your
 broker (you log in yourself, and it only ever gets read-only access), offer to
