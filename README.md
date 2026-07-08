@@ -79,9 +79,13 @@ is involved. Once you like what you see, set up your own below.
 You do **not** need to be technical. Claude sets it up for you.
 
 1. Install [Claude Code](https://claude.com/claude-code).
-2. Get this repo onto your computer, either way:
-   - **Download ZIP**: green **Code** button above, then **Download ZIP**, then unzip, or
-   - **Clone**: `git clone https://github.com/yohanncurmally/portfolio-analyzer.git`
+2. Get this repo onto your computer. Pick whichever fits you:
+   - **Not technical (no GitHub account needed):** click this link, it just downloads a
+     zip, no sign-in required:
+     [portfolio-analyzer-main.zip](https://github.com/yohanncurmally/portfolio-analyzer/archive/refs/heads/main.zip).
+     Open the file to unzip it, then drag the resulting `portfolio-analyzer-main` folder
+     somewhere easy like your Desktop.
+   - **Technical (you have git):** `git clone https://github.com/yohanncurmally/portfolio-analyzer.git`
 3. Open the folder in Claude Code and say:
 
    > **Read SETUP_FOR_CLAUDE.md and set me up.**
