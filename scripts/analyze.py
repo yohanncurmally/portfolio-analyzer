@@ -92,6 +92,8 @@ def main() -> None:
             "delta_leverage_x": es.net_delta_notional / snap.total_value if snap.total_value else 0,
         },
         "notional_by_bucket": es.notional_by_bucket,
+        "exposure_by_bucket": es.exposure_by_bucket,
+        "exposure_by_symbol": es.exposure_by_symbol,
         "spots": es.spots,
         "accounts": [
             {

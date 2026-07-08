@@ -36,22 +36,26 @@ roll the cheap-thesis, expensive-structure legs out and up before theta eats the
 
 ---
 
-## Exposure by AI capital-cycle bucket (delta-adjusted $)
+## Exposure by AI capital-cycle bucket (whole book)
 
-The tool groups option exposure by where each name sits in the AI capital cycle:
+The tool tags every holding, stock and option alike, by where it sits in the AI capital
+cycle, then sums whole-book directional exposure (equity market value plus option
+delta-$) per bucket. On the dashboard this is a chart with a legend that spells out each
+code, so you are never left guessing what G3A or G3B means:
 
-| Bucket | Delta-$ | Read |
+| Bucket | Exposure | What's in it |
 |---|---:|---|
-| G3A picks & shovels, self-funded | $344.8k | The whole book leans here (AMD, MU, TSM, DELL, MRVL). Crowded trade, and the risk is a capex blink from the hyperscalers. |
-| G1 beaten SaaS | $108.4k | CRWD, NET, HOOD. Re-rating stories with execution risk. |
-| G2 megacap spender | $88.3k | ORCL. De-rated on spend, earnings-driven. |
-| Non-AI-cycle | $22.1k | TSLA. Along for the ride, not part of the thesis. |
-| G3B debt-funded pure-play | $21.7k | IREN, SMCI. Highest torque, first to break if funding tightens. |
+| G3A picks & shovels, self-funded | $366.1k (51%) | The core of the book: NVDA stock plus AMD, MU, TSM, DELL, MRVL, SMCI calls. The crowded rotation; the risk is a capex blink from the hyperscalers. |
+| G2 megacap spender | $140.9k (20%) | AAPL, AMZN, MSFT stock plus ORCL and TSLA calls. De-rated names funding the buildout from cash flow; earnings risk, not a multiple crash. |
+| G1 beaten SaaS | $108.4k (15%) | CRWD and NET calls, plus the short PANW put. Re-rating stories with execution risk. |
+| Untagged | $54.2k (8%) | VOO, COST, SCHD. Broad ETFs and a non-thesis stock, correctly sitting outside the AI-cycle map. |
+| Non-AI-cycle | $22.1k (3%) | HOOD call. Fintech momentum, not an AI-capex name. |
+| G3B debt-funded pure-play | $21.7k (3%) | IREN call. Highest torque up, first to break if financing tightens. |
 
-The concentration flag is real: over half the directional risk sits in one bucket
-(G3A). That is a coherent bet if you believe the self-funded infrastructure names are the
-safest way to own the buildout, but it is a single point of failure. A capex pause hits
-all of them at once.
+The concentration flag is real: over half the directional exposure (51%) sits in one
+bucket, G3A. That is a coherent bet if you believe the self-funded infrastructure names
+are the safest way to own the buildout, but it is a single point of failure. A capex
+pause hits all of them at once.
 
 ---
 
@@ -92,10 +96,11 @@ the higher carry is the 58% IV you are paying for. Watch it past 90 DTE.
 ### TRIM / ROLL
 
 **TSLA $300 call, 80 DTE.** Barely ITM (spot $312, moneyness 1.04), delta 0.62, carry
-**39.5%/yr**, down **-$1.0k**, flagged **HIGH_THETA**. This is the marginal leg: not part
-of the AI thesis (it buckets Non-AI-cycle), close to the money so it has the most time
-value to lose, and under 90 days. Either roll it out and up to reset the decay clock, or
-take it off. It is the one position that is neither a conviction hold nor a clear cut.
+**39.5%/yr**, down **-$1.0k**, flagged **HIGH_THETA**. This is the marginal leg: it sits
+in G2 (megacap) but is the lowest-conviction name there, close to the money so it has the
+most time value to lose, and under 90 days. Either roll it out and up to reset the decay
+clock, or take it off. It is the one position that is neither a conviction hold nor a
+clear cut.
 
 ### DE-RISK, the theta bleed
 

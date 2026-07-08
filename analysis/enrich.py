@@ -162,8 +162,34 @@ class EnrichedSnapshot:
 
     @property
     def notional_by_bucket(self) -> dict[str, float]:
-        """Delta-adjusted exposure grouped by AI capital-cycle bucket."""
+        """Delta-adjusted exposure grouped by AI capital-cycle bucket (options only)."""
         out: dict[str, float] = {}
+        for o in self.options:
+            out[o.cycle_bucket] = out.get(o.cycle_bucket, 0.0) + (o.delta_notional or 0.0)
+        return dict(sorted(out.items(), key=lambda kv: -abs(kv[1])))
+
+    @property
+    def exposure_by_symbol(self) -> dict[str, float]:
+        """Whole-book directional $ per ticker: equity market value (delta 1) plus
+        option delta-$. The portfolio-agnostic exposure view, meaningful whether the
+        book is equities-only, options-only, or a mix."""
+        out: dict[str, float] = {}
+        for a in self.snap.accounts:
+            for e in a.equities:
+                out[e.symbol] = out.get(e.symbol, 0.0) + (e.market_value or 0.0)
+        for o in self.options:
+            out[o.symbol] = out.get(o.symbol, 0.0) + (o.delta_notional or 0.0)
+        return dict(sorted(out.items(), key=lambda kv: -abs(kv[1])))
+
+    @property
+    def exposure_by_bucket(self) -> dict[str, float]:
+        """Whole-book directional $ grouped by AI capital-cycle bucket: equity market
+        value plus option delta-$. Equities are tagged with the same classifier as
+        options, so an equities-only book still gets a thematic read."""
+        out: dict[str, float] = {}
+        for a in self.snap.accounts:
+            for e in a.equities:
+                out[cycle_bucket(e.symbol)] = out.get(cycle_bucket(e.symbol), 0.0) + (e.market_value or 0.0)
         for o in self.options:
             out[o.cycle_bucket] = out.get(o.cycle_bucket, 0.0) + (o.delta_notional or 0.0)
         return dict(sorted(out.items(), key=lambda kv: -abs(kv[1])))

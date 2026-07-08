@@ -32,8 +32,12 @@ this same sample book, position by position.
 ## What you get
 
 - **Interactive dashboard** (opens in your browser, works offline): total value,
-  leverage and risk, allocation, exposure by holding, an expiry wall for options, and a
-  sortable, filterable positions table where every row expands into a full drilldown.
+  allocation, exposure by holding, and concentration, plus an equities table and, for
+  options, leverage/risk KPIs, an expiry wall, and a sortable, filterable options table
+  where every row expands into a full drilldown. It adapts to your book, so an
+  equities-only portfolio renders cleanly with no empty options panels. Charts carry
+  legends (including what the AI-cycle buckets mean) and table columns have hover
+  tooltips explaining each metric.
 - **Written analysis**, position by position: what is working, what is risky, and the
   tradeoffs, plus a portfolio-level summary. Framed around *your* stated strategy.
 - For options traders: put-correct greeks, delta-adjusted exposure, and a
