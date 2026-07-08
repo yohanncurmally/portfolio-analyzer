@@ -79,7 +79,9 @@ Use its virtualenv: `.venv/bin/python`. The `.env` there holds the broker creds.
      Lead with allocation, single-name and sector/bucket concentration
      (`exposure_by_symbol`, `exposure_by_bucket`), unrealized P/L and cost basis vs.
      conviction, cash drag, and drift from their target plan. For a passive indexer the
-     read is diversification, concentration, and fees, not leverage.
+     read is diversification, concentration, and fees, not leverage. Treat broad-market
+     ETFs (VOO, VTI, VT, SCHD, BND and the like) as diversification, not single-name
+     concentration, even when one is a large share of the book.
    - **Equities + options (mix):** cover the stock sleeve as the base (allocation,
      concentration, gains), then the options overlay with the full greeks/carry/expiry
      treatment below. Relate the two: is the options book leveraging the same names the

@@ -61,6 +61,31 @@ EQ_COL_HELP = {
 }
 
 
+# Broad-market ETFs that track a wide index. A large position in one of these is
+# diversification, not single-name risk, so it doesn't trip the concentration flag.
+# Conservative allowlist: anything not here is still treated as a concentrated bet.
+BROAD_MARKET_ETFS = {
+    # US total market / S&P 500 / large cap (incl. common mutual-fund equivalents)
+    "VOO", "VTI", "SPY", "IVV", "ITOT", "SCHB", "SCHX", "VV", "SPLG", "SPTM",
+    "IWB", "IWV", "FXAIX", "FZROX", "FSKAX", "FNILX", "SWPPX", "VFIAX", "VTSAX",
+    # Nasdaq / broad
+    "QQQ", "QQQM", "ONEQ",
+    # mid / small broad
+    "VO", "VB", "IJH", "IJR", "VXF", "SCHM", "SCHA", "MDY",
+    # world / developed / emerging broad
+    "VT", "VXUS", "VEU", "VEA", "VWO", "IXUS", "ACWI", "IEFA", "IEMG",
+    "SCHF", "SCHE", "SPDW", "SPEM", "VEU",
+    # broad dividend
+    "SCHD", "VYM", "VIG", "DGRO", "DVY", "HDV", "NOBL",
+    # broad bond aggregate
+    "BND", "AGG", "BNDX", "SCHZ", "SPAB", "GOVT", "VCIT", "VCSH", "IUSB", "FXNAX",
+}
+
+
+def _is_broad_etf(sym: str) -> bool:
+    return bool(sym) and sym.upper() in BROAD_MARKET_ETFS
+
+
 def _verdict(o) -> tuple[str, str]:
     """Return (tag, one-line rationale): the candid per-position call."""
     f = set(o.flags)
@@ -177,13 +202,15 @@ def _build_data(es: EnrichedSnapshot) -> dict:
         dlev = es.net_delta_notional / total
         if dlev > 2.5:
             actions.append(("LEVERAGE", f"Delta-adjusted exposure {dlev:.2f}x NAV, directional risk is high."))
-    if exposure:
-        top = exposure[0]
-        conc = abs(top["delta_notional"]) / total
+    # single-name concentration: skip broad-market ETFs (a big index position is
+    # diversification, not a concentrated bet)
+    top_single = next((e for e in exposure if not _is_broad_etf(e["symbol"])), None)
+    if top_single:
+        conc = abs(top_single["delta_notional"]) / total
         if conc > 0.35:
             actions.append(("CONCENTRATION",
-                            f"{top['symbol']} is {conc*100:.0f}% of NAV, your largest single "
-                            "position by exposure. Confirm that concentration is intended."))
+                            f"{top_single['symbol']} is {conc*100:.0f}% of NAV, your largest "
+                            "single-name position. Confirm that concentration is intended."))
     if snap.cash / total < 0.10:
         actions.append(("LIQUIDITY", f"Cash is {snap.cash/total*100:.0f}% of NAV, thin dry powder."))
 
@@ -192,7 +219,8 @@ def _build_data(es: EnrichedSnapshot) -> dict:
     if exposure:
         t = exposure[0]
         top_holding = {"symbol": t["symbol"],
-                       "pct": round(abs(t["delta_notional"]) / total * 100, 1)}
+                       "pct": round(abs(t["delta_notional"]) / total * 100, 1),
+                       "broad": _is_broad_etf(t["symbol"])}
     n_holdings = len({e["symbol"] for e in equities}) + len({p["symbol"] for p in positions})
 
     return {
@@ -344,7 +372,9 @@ if(S.has_options){
  kpis.push(['Time value at risk',money(T.extrinsic_at_risk),`${T.extrinsic_pct_nav}% of NAV decays absent a move`,T.extrinsic_pct_nav>40?'warn':'','Total extrinsic (time) value across all options. This decays to zero by expiry if the underlyings don’t move.']);
 }else{
  kpis.push(['Invested',money(T.invested_value),`${T.invested_pct}% of NAV at work`,'','Portfolio value excluding cash.']);
- if(T.top_holding)kpis.push(['Top holding',T.top_holding.symbol+' '+T.top_holding.pct+'%',T.top_holding.pct>25?'single-name concentration':'largest position',T.top_holding.pct>30?'warn':'','Largest single-name exposure as a percent of net worth.']);
+ if(T.top_holding){const th=T.top_holding;const broad=th.broad;
+  const hint=broad?'largest position (broad ETF)':(th.pct>25?'single-name concentration':'largest position');
+  kpis.push(['Top holding',th.symbol+' '+th.pct+'%',hint,(!broad&&th.pct>30)?'warn':'','Largest single position as a percent of net worth. Broad-market ETFs are treated as diversified, not concentration.']);}
  kpis.push(['Holdings',String(T.n_holdings),'distinct positions','','Number of distinct tickers held.']);
 }
 kpis.push(['Unrealized P/L',money(T.opt_pl+T.eq_pl),plHint,clr(T.opt_pl+T.eq_pl),'Mark-to-market gain/loss versus cost across the whole book.']);
