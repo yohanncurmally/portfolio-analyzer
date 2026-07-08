@@ -241,11 +241,14 @@ plain English, they're not technical) and write their answers into
   - Any rules they follow (e.g. "roll at 30 DTE", "never let a short put go ITM",
     "keep X% cash").
 - **Accounts, goals, and time horizon:** taxable vs. IRA/Roth, target outcome, timeframe.
-- **Any AI or tech tilt.** If they invest around the AI buildout, walk them through the
-  five cycle buckets in `docs/target_portfolio.md` (G1 beaten SaaS, G2 megacap
-  spenders, G3A self-funded picks-and-shovels, G3B debt-funded pure-plays, NON) and
-  tag the names they mention. Add any ticker they hold that isn't recognized to the
-  `_BUCKETS` dict in `shared/ai_cycle.py` so it stops showing as `UNTAGGED`.
+- **Their thesis buckets.** The exposure chart splits the book into buckets the user
+  invests around (an AI-buildout thesis, dividend income, sector rotation, factor
+  sleeves, whatever fits them). Ask how they think about their positions and group them
+  accordingly. You build this taxonomy and tag each holding into `tags.json` during a run
+  (see `tags.example.json` for the shape and a worked AI-thesis example). Keep it small
+  (aim for 5 to 8 populated buckets plus "other"); a bucket earns its place only if it
+  carries real weight and implies a different action than its neighbors. Anything not yet
+  classified resolves to "other" until you tag it.
 
 Fill in `docs/target_portfolio.md` with what you learn (leave sections blank if they
 don't apply). From then on the skill compares reality against this thesis on every run.

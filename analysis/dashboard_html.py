@@ -5,7 +5,7 @@ so it opens offline). It adapts to the shape of the book: an equities-only portf
 an options-heavy one, or any mix all render cleanly with no blank panels. Options-only
 panels (moneyness/DTE scatter, expiry wall, options table, the delta-leverage KPIs) only
 appear when there are options; an equities table appears when there are equities; and the
-AI-cycle bucket chart only shows when the book actually tilts into those buckets.
+thesis-bucket chart only shows when the book actually tilts into those buckets.
 
 Reads only from EnrichedSnapshot (same object viz.render uses), so PNG and HTML stay
 in lockstep. Per-position greeks/carry/bucket/flags come straight from analysis.enrich.
@@ -553,7 +553,7 @@ function hbars(elid,rows,fmt,lblW){lblW=lblW||52;const W=560,rowH=26,H=Math.max(
   txt(x0+w+5,y+15,fmt(r.v),{fs:10},s,'#8b949e');});
  document.getElementById(elid).appendChild(s);}
 
-// bucket chart + on-page legend (only when the book actually tilts into AI-cycle buckets)
+// bucket chart + on-page legend (only when the book actually tilts into thesis buckets)
 if(S.show_buckets&&D.buckets.length){
  hbars('buckets',D.buckets.map(b=>({label:b.label,v:b.delta_notional,color:b.color||'#8172b3'})),v=>k(v)+'',128);
  document.getElementById('buckets-lgd').innerHTML=D.buckets.map(b=>

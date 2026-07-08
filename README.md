@@ -36,7 +36,7 @@ this same sample book, position by position.
   options, leverage/risk KPIs, an expiry wall, and a sortable, filterable options table
   where every row expands into a full drilldown. It adapts to your book, so an
   equities-only portfolio renders cleanly with no empty options panels. Charts carry
-  legends (including what the AI-cycle buckets mean) and table columns have hover
+  legends (including what your thesis buckets mean) and table columns have hover
   tooltips explaining each metric.
 - **Written analysis**, position by position: what is working, what is risky, and the
   tradeoffs, plus a portfolio-level summary. Framed around *your* stated strategy.

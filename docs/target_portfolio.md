@@ -58,29 +58,29 @@ target weight or share/contract count.
 | _(EXAMPLE)_ MSFT | monetizing AI across cloud + apps, self-funds capex | 8% shares + covered calls |
 | _(EXAMPLE)_ NOW | agentic workflow re-rating; sell CSPs to enter | 5%, wheel it |
 
-## 4. AI capital-cycle tags (optional)
+## 4. Thesis buckets (optional)
 
-If you invest around the AI buildout, the skill groups delta-$ exposure by role.
-The buckets (defined in `shared/ai_cycle.py`) are:
+The exposure chart splits your delta-$ into buckets you invest around. You define the
+taxonomy: it can be anything (an AI-buildout thesis, dividend income, sector rotation,
+factor sleeves). Claude builds it and tags each holding into `tags.json` during a run;
+see `tags.example.json` for the shape and a worked AI-thesis example. Keep it small (aim
+for 5 to 8 populated buckets plus "other"), and give each a human label, a color, and a
+one-line description. A bucket earns its place only if it carries real weight and implies
+a different action than its neighbors.
 
-- **G1**: beaten-down software / SaaS re-rating on AI adoption.
-- **G2**: megacap "spenders" funding the buildout from cash flow.
-- **G3A**: self-funded picks-and-shovels (chips, power, networking).
-- **G3B**: debt-funded pure-plays (highest torque, first to break).
-- **NON**: not part of the AI cycle.
+_(EXAMPLE)_ how a filled-in AI-thesis tilt might read; replace with your own buckets and
+names:
 
-_(EXAMPLE)_ how a filled-in tilt might read; replace with the user's real names/weights:
-
-| Bucket | Names the user leans into | Rough target weight |
+| Bucket | Names you lean into | Rough target weight |
 |---|---|---|
-| _(EXAMPLE)_ G3A (self-funded picks & shovels) | NVDA, AVGO, VRT, ANET | ~45%, overweight, core |
-| _(EXAMPLE)_ G2 (megacap spenders) | MSFT, META, GOOGL | ~20% |
-| _(EXAMPLE)_ G1 (beaten SaaS re-rating) | NOW, CRM | ~20% |
-| _(EXAMPLE)_ G3B (debt-funded pure-plays) | NBIS, CRWV | ~10%, small, high torque |
-| _(EXAMPLE)_ NON (non-AI) | cash + hedges | ~5% |
+| _(EXAMPLE)_ AI picks & shovels (self-funded) | NVDA, AVGO, VRT, ANET | ~45%, overweight, core |
+| _(EXAMPLE)_ Megacap AI (spenders) | MSFT, META, GOOGL | ~20% |
+| _(EXAMPLE)_ AI software | NOW, CRM | ~20% |
+| _(EXAMPLE)_ AI debt-funded infra (pure-plays) | NBIS, CRWV | ~10%, small, high torque |
+| _(EXAMPLE)_ Other (cash + hedges) | cash + hedges | ~5% |
 
-Any ticker not tagged shows up as `UNTAGGED` in the output so you can classify it;
-add it to the `_BUCKETS` dict in `shared/ai_cycle.py`.
+Any ticker not yet classified resolves to "other" in the output until you tag it in
+`tags.json`.
 
 ## 5. Catalyst calendar (optional)
 
@@ -88,7 +88,7 @@ Earnings dates, product launches, macro events you're watching.
 
 | Date | Ticker / event | Why it matters |
 |---|---|---|
-| _(EXAMPLE)_ next NVDA earnings | NVDA | biggest single-name mover; sets the whole G3A tone |
+| _(EXAMPLE)_ next NVDA earnings | NVDA | biggest single-name mover; sets the whole picks-and-shovels tone |
 | _(EXAMPLE)_ hyperscaler capex guides | MSFT/META/GOOGL/AMZN | a capex "blink" is the #1 cycle-turn signal |
 
 ## 6. Rules / guardrails (optional)

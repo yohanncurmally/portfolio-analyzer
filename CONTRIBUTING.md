@@ -29,7 +29,7 @@ shared/          canonical models + Black-Scholes math (single source of truth)
 data_sources/    read-only broker connectors, each returning a PortfolioSnapshot
   snaptrade/       SnapTrade path (Robinhood, IBKR, 20+ brokers)
   ibkr/            direct IB Gateway/TWS path
-analysis/        enrich (greeks, carry, cycle buckets) + PNG + HTML dashboards
+analysis/        enrich (greeks, carry, thesis buckets) + PNG + HTML dashboards
 scripts/         entrypoints (analyze.py is the driver)
 claude-skill/    the Claude Code skill that orchestrates the flow
 docs/            optional per-user thesis (target_portfolio.md)

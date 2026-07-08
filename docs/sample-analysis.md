@@ -36,26 +36,28 @@ roll the cheap-thesis, expensive-structure legs out and up before theta eats the
 
 ---
 
-## Exposure by AI capital-cycle bucket (whole book)
+## Exposure by thesis bucket (whole book)
 
-The tool tags every holding, stock and option alike, by where it sits in the AI capital
-cycle, then sums whole-book directional exposure (equity market value plus option
-delta-$) per bucket. On the dashboard this is a chart with a legend that spells out each
-code, so you are never left guessing what G3A or G3B means:
+The tool tags every holding, stock and option alike, into the buckets you invest around,
+then sums whole-book directional exposure (equity market value plus option delta-$) per
+bucket. This sample book is an AI-buildout thesis, so the buckets split by role in that
+buildout. On the dashboard this is a chart with a legend that spells out each label, so
+you are never left guessing what a bucket means:
 
 | Bucket | Exposure | What's in it |
 |---|---:|---|
-| G3A picks & shovels, self-funded | $366.1k (51%) | The core of the book: NVDA stock plus AMD, MU, TSM, DELL, MRVL, SMCI calls. The crowded rotation; the risk is a capex blink from the hyperscalers. |
-| G2 megacap spender | $140.9k (20%) | AAPL, AMZN, MSFT stock plus ORCL and TSLA calls. De-rated names funding the buildout from cash flow; earnings risk, not a multiple crash. |
-| G1 beaten SaaS | $108.4k (15%) | CRWD and NET calls, plus the short PANW put. Re-rating stories with execution risk. |
-| Untagged | $54.2k (8%) | VOO, COST, SCHD. Broad ETFs and a non-thesis stock, correctly sitting outside the AI-cycle map. |
-| Non-AI-cycle | $22.1k (3%) | HOOD call. Fintech momentum, not an AI-capex name. |
-| G3B debt-funded pure-play | $21.7k (3%) | IREN call. Highest torque up, first to break if financing tightens. |
+| AI picks & shovels (self-funded) | $366.1k (51%) | The core of the book: NVDA stock plus AMD, MU, TSM, DELL, MRVL, SMCI calls. The crowded rotation; the risk is a capex blink from the hyperscalers. |
+| Megacap AI (spenders) | $140.9k (20%) | AAPL, AMZN, MSFT stock plus ORCL and TSLA calls. De-rated names funding the buildout from cash flow; earnings risk, not a multiple crash. |
+| AI software | $108.4k (15%) | CRWD and NET calls, plus the short PANW put. Re-rating stories with execution risk. |
+| Broad market | $39.4k (6%) | VOO and SCHD. Diversified index and dividend ETFs, correctly sitting outside the thesis map. |
+| Non-AI tech | $22.1k (3%) | HOOD call. Fintech momentum, not an AI-capex name. |
+| AI debt-funded infra | $21.7k (3%) | IREN call. Highest torque up, first to break if financing tightens. |
+| Other | $14.8k (2%) | COST. A non-thesis single name that doesn't fit the buildout. |
 
 The concentration flag is real: over half the directional exposure (51%) sits in one
-bucket, G3A. That is a coherent bet if you believe the self-funded infrastructure names
-are the safest way to own the buildout, but it is a single point of failure. A capex
-pause hits all of them at once.
+bucket, AI picks & shovels. That is a coherent bet if you believe the self-funded
+infrastructure names are the safest way to own the buildout, but it is a single point of
+failure. A capex pause hits all of them at once.
 
 ---
 
@@ -97,7 +99,7 @@ the higher carry is the 58% IV you are paying for. Watch it past 90 DTE.
 
 **TSLA $300 call, 80 DTE.** Barely ITM (spot $312, moneyness 1.04), delta 0.62, carry
 **39.5%/yr**, down **-$1.0k**, flagged **HIGH_THETA**. This is the marginal leg: it sits
-in G2 (megacap) but is the lowest-conviction name there, close to the money so it has the
+in Megacap AI but is the lowest-conviction name there, close to the money so it has the
 most time value to lose, and under 90 days. Either roll it out and up to reset the decay
 clock, or take it off. It is the one position that is neither a conviction hold nor a
 clear cut.
@@ -113,7 +115,7 @@ up +$2.1k, flagged HIGH_THETA + EXPENSIVE_CARRY. You are up, so take the win or 
 to a LEAP. At 52 days and this carry, the gain evaporates fast if MRVL stalls.
 
 **IREN $25 call, 52 DTE.** Out of the money (spot $23), IV 88%, carry **131%/yr**, up
-+$1.6k, flagged HIGH_THETA + EXPENSIVE_CARRY. G3B debt-funded pure-play, the highest-torque,
++$1.6k, flagged HIGH_THETA + EXPENSIVE_CARRY. AI debt-funded infra, the highest-torque,
 first-to-break bucket, held through a short-dated OTM call. This is a lottery ticket that
 happens to be green. Bank it.
 
@@ -172,7 +174,7 @@ Not advice, just the read the numbers point to:
    re-express it the way AMD/MU/ORCL are held.
 3. **Decide on TSLA.** It is the one leg that is neither conviction nor junk. Roll it out
    and up, or let it go.
-4. **Mind the G3A concentration.** Over half your directional risk is one bucket. That is a
+4. **Mind the picks-and-shovels concentration.** Over half your directional risk is one bucket. That is a
    deliberate bet, but a single capex-cycle headline moves all of it together.
 
 Run it against your own book to see this read on your actual positions:

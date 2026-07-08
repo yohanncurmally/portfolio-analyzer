@@ -53,7 +53,7 @@ Use its virtualenv: `.venv/bin/python`. The `.env` there holds the broker creds.
      `color`, and one-line `desc`. **Keep it small: aim for <=8 buckets, hard stop ~10**,
      beyond which the chart stops splitting cleanly. **Always keep an `other` catch-all** so
      nothing is force-fit. The taxonomy should come from the user's actual strategy in
-     `docs/target_portfolio.md` (AI-cycle, dividend income, sector rotation, whatever). Only
+     `docs/target_portfolio.md` (AI buildout, dividend income, sector rotation, whatever). Only
      regenerate the taxonomy on a deliberate re-personalization, so dashboard history stays
      comparable; tags *within* it can be filled in freely.
      **The real rule for whether a bucket earns its place:** a bucket is worth having only if
@@ -117,12 +117,12 @@ Use its virtualenv: `.venv/bin/python`. The `.env` there holds the broker creds.
    - `cycle_bucket`: the thesis bucket id this name resolves to (from `tags.json` via
      `shared/tagging.py`); the dashboard renders its human label + color from the taxonomy.
    Portfolio totals add `net_delta_notional`, `delta_leverage_x` (the leverage number
-   to lead with), `notional_by_bucket` (option delta-$ by cycle role), and the
+   to lead with), `notional_by_bucket` (option delta-$ by thesis bucket), and the
    whole-book views `exposure_by_bucket` and `exposure_by_symbol` (equity market value +
    option delta-$, so equities-only books still get a thematic and concentration read).
 
 2b. **Adapt the read to the shape of the book AND the user's stated strategy.** Do not
-   force an options-heavy, AI-cycle narrative onto a book that isn't one. First look at
+   force an options-heavy, AI-buildout narrative onto a book that isn't one. First look at
    what they actually hold and what `docs/target_portfolio.md` says they're trying to do,
    then pick the frame:
    - **Equities-only (stocks/ETFs, no options):** skip greeks/carry/expiry entirely.
@@ -198,22 +198,23 @@ Use its virtualenv: `.venv/bin/python`. The `.env` there holds the broker creds.
      net directional exposure vs. net worth), the honest number. Cite raw
      `controlled_notional` / `leverage_x` as the gross figure and explain the gap.
    - Time-value-at-risk (options only): total extrinsic that decays to zero absent a move.
-   - **AI-cycle positioning (only if the book tilts into these buckets; use
-     `exposure_by_bucket` for the whole-book view, or `notional_by_bucket` for the options
-     slice):** show delta-$ by cycle role
-     (G1 beaten SaaS, G2 megacap spenders, G3A self-funded picks&shovels, G3B
-     debt-funded pure-plays). Situate the book on the spenders-vs-picks-and-shovels
-     map: how much sits in the crowded/capex-blink-risk G3A bucket, how much in the
-     highest-torque/first-to-break G3B, and whether that matches conviction. Any name that
-     falls to the `other` bucket is untagged: classify it into `tags.json` (see step 1a).
+   - **Thesis-bucket positioning (use `exposure_by_bucket` for the whole-book view, or
+     `notional_by_bucket` for the options slice):** show delta-$ by the buckets you built
+     in `tags.json` (step 1a) and situate the book across them: which bucket carries the
+     most directional risk, whether that matches conviction, and where the fragile edges
+     sit. For an AI-buildout thesis that typically means the crowded/capex-blink-risk
+     picks-and-shovels bucket vs. the highest-torque/first-to-break debt-funded infra
+     bucket, but frame it in the user's own buckets. Any name that falls to the `other`
+     bucket is unclassified: tag it into `tags.json` (see step 1a).
    - Concentration by underlying and by thematic bucket vs. target weights.
    - Expiry wall: capital/decision clusters by month.
    - **5-indicator cycle-turn watchlist** (frame the macro backdrop the book is
      exposed to; pull latest data points where cheap): (1) capex blink, hyperscaler
      guide cuts; (2) circular-financing strain, vendor-financing / SPV leverage;
      (3) GPU pricing & utilization, rental rates, neocloud backlog (CRWV/NBIS);
-     (4) leverage layer, debt issuance by G3B names; (5) megacap multiples vs. ROIC.
-     Watch sequence #3 → #2 → #1 → #4. A turn here is what would break the G3A/G3B legs.
+     (4) leverage layer, debt issuance by the debt-funded infra names; (5) megacap
+     multiples vs. ROIC. Watch sequence #3 → #2 → #1 → #4. A turn here is what would break
+     the picks-and-shovels and debt-funded infra legs.
    - Specific, prioritized action list (what to do this week vs. this month).
 
 ## Cost-basis caveat
@@ -242,7 +243,7 @@ Check `docs/target_portfolio.md`:
   _"Want me to tailor this to your actual strategy? Two minutes of your thesis and I'll
   make the buckets and every verdict specific to you."_ If yes, interview them
   conversationally about thesis, conviction, **how they use options (buy vs. sell
-  premium, ITM/LEAPS vs. OTM, any rules)**, accounts and horizon, and AI-cycle tilt, and
+  premium, ITM/LEAPS vs. OTM, any rules)**, accounts and horizon, and thesis tilt, and
   write it into `docs/target_portfolio.md`, and derive a small bucket taxonomy from their
   strategy into `tags.json` (see step 1a). Tag any `other`/untagged names into `tags.json`.
 - **If it's filled in**, respect it: lead the read through *their* stated strategy, and
