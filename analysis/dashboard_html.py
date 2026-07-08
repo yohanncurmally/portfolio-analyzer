@@ -440,10 +440,6 @@ tr.row{cursor:pointer}tr.row:hover td{background:var(--panel2)}
 <h1>Portfolio Dashboard</h1><div class="sub" id="sub"></div>
 <div class="kpis" id="kpis"></div>
 <div class="card full" style="margin-bottom:22px"><h3>Prioritized actions</h3><ul class="actions" id="actions"></ul></div>
-<div class="card full" id="card-writeups" style="margin-bottom:22px">
-  <h3>Deep-dive write-ups <span class="muted">(click a name for the full thesis, bull / base / bear cases, and the rationale behind the call)</span></h3>
-  <div id="writeups"></div>
-</div>
 <div class="grid">
   <div class="card" id="card-alloc"><h3>Asset allocation</h3><div id="alloc"></div><div class="lgd" id="alloc-lgd"></div></div>
   <div class="card" id="card-buckets"><h3>Exposure by thesis bucket <span class="muted">(whole book: equity + option delta-$)</span></h3><div id="buckets"></div><div class="blgd" id="buckets-lgd"></div></div>
@@ -468,6 +464,11 @@ tr.row{cursor:pointer}tr.row:hover td{background:var(--panel2)}
     <span class="chip" data-f="HIGH_THETA">High theta</span>
   </div>
   <div style="overflow:auto;max-height:640px"><table id="tbl"><thead><tr id="opthead"></tr></thead><tbody id="tb"></tbody></table></div>
+</div>
+
+<div class="card full" id="card-writeups" style="margin-top:22px">
+  <h3>Deep-dive write-ups <span class="muted">(the in-depth read: click a name for the full thesis, bull / base / bear cases, and the rationale behind the call)</span></h3>
+  <div id="writeups"></div>
 </div>
 <div class="sub" id="foot" style="margin-top:18px"></div>
 </div>
