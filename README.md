@@ -60,7 +60,7 @@ You do **not** need to be technical. Claude sets it up for you.
 That short line is enough. The setup guide already walks Claude through everything and
 ends by running your first analysis.
 
-If you want to be more explicit (recommended if you are not technical), paste this
+If you want to be more explicit (recommended if you want it fully hands-off), paste this
 longer prompt instead:
 
    > **Read SETUP_FOR_CLAUDE.md and set me up from scratch. Run the steps for me and only
