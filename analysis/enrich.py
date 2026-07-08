@@ -13,7 +13,7 @@ from typing import Optional
 
 from shared.models import PortfolioSnapshot
 from shared.blackscholes import bs_delta, implied_vol
-from shared.ai_cycle import bucket as cycle_bucket
+from shared.tagging import resolve as cycle_bucket, OTHER_ID
 
 
 def fetch_spots(symbols: list[str]) -> dict[str, float]:
@@ -64,7 +64,7 @@ class OptionAnalytics:
     delta: Optional[float] = None           # per-share, signed for long/short (+call/-put)
     delta_notional: Optional[float] = None  # delta-adjusted $ exposure (true directional risk)
     carry_pct_yr: Optional[float] = None    # annualized cost of the leverage; low=cheap ITM, high=expensive OTM
-    cycle_bucket: str = "UNTAGGED"          # AI capital-cycle role (see shared/ai_cycle.py)
+    cycle_bucket: str = OTHER_ID            # thesis bucket id (see shared/tagging.py + tags.json)
     flags: list[str] = field(default_factory=list)
 
 
@@ -161,8 +161,15 @@ class EnrichedSnapshot:
         return sum(o.delta_notional or 0.0 for o in self.options)
 
     @property
+    def taxonomy(self) -> dict[str, dict]:
+        """Bucket id -> {label, color, desc} for whatever buckets this book uses,
+        so the dashboard renders labels from data rather than hardcoded codes."""
+        from shared.tagging import taxonomy_map
+        return taxonomy_map()
+
+    @property
     def notional_by_bucket(self) -> dict[str, float]:
-        """Delta-adjusted exposure grouped by AI capital-cycle bucket (options only)."""
+        """Delta-adjusted option exposure grouped by thesis bucket (options only)."""
         out: dict[str, float] = {}
         for o in self.options:
             out[o.cycle_bucket] = out.get(o.cycle_bucket, 0.0) + (o.delta_notional or 0.0)
@@ -183,9 +190,9 @@ class EnrichedSnapshot:
 
     @property
     def exposure_by_bucket(self) -> dict[str, float]:
-        """Whole-book directional $ grouped by AI capital-cycle bucket: equity market
-        value plus option delta-$. Equities are tagged with the same classifier as
-        options, so an equities-only book still gets a thematic read."""
+        """Whole-book directional $ grouped by thesis bucket: equity market value plus
+        option delta-$. Equities are tagged with the same classifier as options, so an
+        equities-only book still gets a thematic read."""
         out: dict[str, float] = {}
         for a in self.snap.accounts:
             for e in a.equities:

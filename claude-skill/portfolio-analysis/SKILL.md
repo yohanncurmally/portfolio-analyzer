@@ -23,16 +23,61 @@ Use its virtualenv: `.venv/bin/python`. The `.env` there holds the broker creds.
 
 ## Steps
 
-1. **Pull + enrich + visualize** (one command). From the repo root:
+1. **Pull, then tag, then render.** The pipeline splits into two stages so you can
+   classify holdings into the user's thesis buckets *between* the pull and the dashboard.
+   From the repo root:
    ```
    cd <ABSOLUTE_PATH_TO_THIS_FOLDER>
-   .venv/bin/python scripts/analyze.py            # add --source ibkr for IBKR-direct
+   .venv/bin/python scripts/analyze.py --stage pull      # add --source ibkr for IBKR-direct
    ```
-   - Add `--cached` to reuse the most recent snapshot instead of a fresh pull
-     (use when the user just pulled, or SnapTrade is rate-limiting).
+   - This writes `outputs/snapshot_<ts>.json` and prints a **NEEDS TAGGING** list of any
+     tickers not yet classified in `tags.json`.
+   - **Tag the untagged names (see step 1a), then render:**
+     ```
+     .venv/bin/python scripts/analyze.py --stage render
+     ```
+   - Or run both at once with `.venv/bin/python scripts/analyze.py` (no `--stage`), which
+     pulls, prints the untagged list, and renders in one shot. Prefer the two-stage flow on
+     a first run or whenever new names appear, so the dashboard reflects correct tags.
+   - Add `--cached` (alias for `--stage render`) to re-render the newest snapshot without a
+     fresh pull (use when the user just pulled, or SnapTrade is rate-limiting).
    - Add `--debug` to dump raw broker bodies if parsing looks wrong.
-   - This writes `outputs/dashboard_<ts>.png` (static), `outputs/dashboard_<ts>.html`
+   - `render` writes `outputs/dashboard_<ts>.png` (static), `outputs/dashboard_<ts>.html`
      (**interactive**), and `outputs/analysis_<ts>.json`, and prints the console report.
+
+1a. **Tag holdings into the user's thesis buckets (`tags.json`).** This is what makes the
+   thematic read specific and correct instead of forcing names into generic sectors. The
+   tagging system lives in `shared/tagging.py`; the data lives in `tags.json` at the repo
+   root (gitignored; `tags.example.json` is the shipped template). It has three parts:
+   - `taxonomy`: the buckets the exposure chart splits into, each with a human `label`,
+     `color`, and one-line `desc`. **Keep it small: aim for <=8 buckets, hard stop ~10**,
+     beyond which the chart stops splitting cleanly. **Always keep an `other` catch-all** so
+     nothing is force-fit. The taxonomy should come from the user's actual strategy in
+     `docs/target_portfolio.md` (AI-cycle, dividend income, sector rotation, whatever). Only
+     regenerate the taxonomy on a deliberate re-personalization, so dashboard history stays
+     comparable; tags *within* it can be filled in freely.
+     **The real rule for whether a bucket earns its place:** a bucket is worth having only if
+     it (a) carries meaningful weight in the book AND (b) leads to a *different action or read*
+     than its neighbors. If two buckets would always be traded/thought about the same way, merge
+     them; if a bucket is a thin sliver, fold it into `other` rather than giving a rounding-error
+     its own slice. Split on the distinction that changes a decision (e.g. self-funded picks &
+     shovels vs. debt-funded infra, because one breaks first if financing tightens), not on
+     surface taxonomy. Ideal is ~5-7 populated thesis buckets plus `other`. Note the dashboard
+     already **auto-collapses any bucket under 4% of exposure into `other` on the chart only**
+     (each holding keeps its precise tag in the tables), so you don't need to hand-merge slivers
+     for display; the rule above is about the *taxonomy design*, not chart cosmetics.
+   - `holdings`: `TICKER -> {tag, asset_class, confidence, note}` where `tag` is a taxonomy id.
+   - `overrides`: same shape; these win over `holdings` (for the user's hand-corrections).
+   Resolution order per ticker is `overrides > holdings > other`.
+   **When `--stage pull` reports untagged names:** for each one, work out what it actually is
+   (use your own knowledge; **WebSearch any ticker you're unsure of**, e.g. recent IPOs) and
+   how the book expresses it, then add it to `tags.json` `holdings` with the right bucket id.
+   **Match granularity to the instrument:** a single stock gets a leaf bucket (e.g. AI picks &
+   shovels vs debt-funded infra); a **basket ETF/fund gets the parent theme only** (e.g. an AI
+   ETF -> an `ai-basket`/theme bucket, never a leaf) because you cannot honestly split a mixed
+   fund into a leaf sub-bucket without look-through into its holdings. Treat broad-market index
+   ETFs (VOO, VTI, VT, SCHD) as a `broad-market` diversification bucket, not concentration.
+   Then run `--stage render`. Only new tickers ever need this; existing tags are cached.
 
 2. **Read the data + surface the interactive dashboard.**
    - Open the newest `outputs/analysis_<ts>.json` (Read tool) for the machine-readable
@@ -40,8 +85,9 @@ Use its virtualenv: `.venv/bin/python`. The `.env` there holds the broker creds.
    - **Open the interactive HTML dashboard for the user.** It's self-contained
      (offline, no CDNs): `open outputs/dashboard_<ts>.html` (macOS; use `start` on
      Windows, `xdg-open` on Linux). It **adapts to the shape of the book**: KPI cards,
-     a prioritized action list, an allocation donut, an **exposure-by-AI-cycle-bucket
-     chart with an on-page legend** explaining G1/G2/G3A/G3B/NON, an **exposure-by-holding
+     a prioritized action list, an allocation donut, an **exposure-by-thesis-bucket
+     chart with an on-page legend** that spells out whatever buckets the user's taxonomy
+     defines (labels and one-line descriptions read from `tags.json`), an **exposure-by-holding
      chart** (equity market value + option delta-$, meaningful for any book), an
      **Equities & ETFs table**, and, when there are options, a **moneyness-vs-DTE bubble,
      an expiry wall, and a sortable/filterable options table where every row expands into
@@ -49,8 +95,8 @@ Use its virtualenv: `.venv/bin/python`. The `.env` there holds the broker creds.
      verdict (CLOSE/ROLL, DECIDE NOW, DE-RISK, CORE HOLD, HOLD). Table headers carry hover
      tooltips explaining each metric. Options-only KPIs (delta-leverage, TVaR, net Δ-$) and
      the options charts appear only when the book holds options; the bucket chart appears
-     only when the book tilts into those AI-cycle buckets, so an equities-only portfolio
-     renders cleanly with no blank panels.
+     only when a meaningful share of the book sits in thesis buckets (not all in `other`),
+     so an equities-only portfolio renders cleanly with no blank panels.
    - The PNG (`dashboard_<ts>.png`) remains as a static snapshot; view it if you want to
      describe visuals inline. The HTML is generated by `analysis/dashboard_html.py` and
      stays in lockstep with the PNG (both read the same `EnrichedSnapshot`).
@@ -65,7 +111,8 @@ Use its virtualenv: `.venv/bin/python`. The `.env` there holds the broker creds.
    - `carry_pct_yr`: annualized % the underlying must move in the option's favor to
      break even. Low = cheap leverage (ITM/LEAP); high = expensive (deep OTM). Legs
      ≥40%/yr get the `EXPENSIVE_CARRY` flag.
-   - `cycle_bucket`: AI capital-cycle role (G1/G2/G3A/G3B/NON; see `shared/ai_cycle.py`).
+   - `cycle_bucket`: the thesis bucket id this name resolves to (from `tags.json` via
+     `shared/tagging.py`); the dashboard renders its human label + color from the taxonomy.
    Portfolio totals add `net_delta_notional`, `delta_leverage_x` (the leverage number
    to lead with), `notional_by_bucket` (option delta-$ by cycle role), and the
    whole-book views `exposure_by_bucket` and `exposure_by_symbol` (equity market value +
@@ -132,8 +179,8 @@ Use its virtualenv: `.venv/bin/python`. The `.env` there holds the broker creds.
      (G1 beaten SaaS, G2 megacap spenders, G3A self-funded picks&shovels, G3B
      debt-funded pure-plays). Situate the book on the spenders-vs-picks-and-shovels
      map: how much sits in the crowded/capex-blink-risk G3A bucket, how much in the
-     highest-torque/first-to-break G3B, and whether that matches conviction. Flag any
-     `UNTAGGED` names for manual classification (add them to `shared/ai_cycle.py`).
+     highest-torque/first-to-break G3B, and whether that matches conviction. Any name that
+     falls to the `other` bucket is untagged: classify it into `tags.json` (see step 1a).
    - Concentration by underlying and by thematic bucket vs. target weights.
    - Expiry wall: capital/decision clusters by month.
    - **5-indicator cycle-turn watchlist** (frame the macro backdrop the book is
@@ -171,8 +218,8 @@ Check `docs/target_portfolio.md`:
   make the buckets and every verdict specific to you."_ If yes, interview them
   conversationally about thesis, conviction, **how they use options (buy vs. sell
   premium, ITM/LEAPS vs. OTM, any rules)**, accounts and horizon, and AI-cycle tilt, and
-  write it into `docs/target_portfolio.md`. Tag any `UNTAGGED` names into
-  `shared/ai_cycle.py`.
+  write it into `docs/target_portfolio.md`, and derive a small bucket taxonomy from their
+  strategy into `tags.json` (see step 1a). Tag any `other`/untagged names into `tags.json`.
 - **If it's filled in**, respect it: lead the read through *their* stated strategy, and
   when reality drifts from the plan, say so. If they mention a new position, rule, or
   view, update the doc so it stays current.

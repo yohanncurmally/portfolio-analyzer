@@ -10,6 +10,10 @@ docs/sample-dashboard.html
 outputs/*
 !outputs/.gitkeep
 
+# Your live tagging cache (holdings -> thesis buckets). tags.example.json is the
+# shipped template; your real tags.json stays local.
+tags.json
+
 # Your personal thesis, if you fill it in and don't want it public
 # (uncomment the next line to keep your filled-in thesis out of git)
 # docs/target_portfolio.md

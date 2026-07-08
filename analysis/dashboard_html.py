@@ -18,17 +18,13 @@ from collections import defaultdict
 from datetime import datetime
 
 from analysis.enrich import EnrichedSnapshot
-from shared.ai_cycle import LABELS as BUCKET_LABELS, bucket as cycle_bucket
+from shared.tagging import resolve as cycle_bucket, taxonomy_map, label as tag_label, \
+    color as tag_color, desc as tag_desc, OTHER_ID
 
-# Short, plain-English gloss for each AI capital-cycle bucket (drives the on-page legend).
-BUCKET_DESC = {
-    "G1": "Beaten-down SaaS applying AI to an existing business. Cheap-ish; risk is execution, not a capex cliff.",
-    "G2": "Megacap spenders funding the buildout from their own cash flow. De-rated; risk is earnings, not a multiple crash.",
-    "G3A": "Picks & shovels, self-funded (semis, power, infra incumbents). The crowded rotation; carries the bust risk if capex blinks.",
-    "G3B": "Picks & shovels, debt-funded pure-plays (neoclouds, single-customer infra). Highest torque up, first to break if financing tightens.",
-    "NON": "Not an AI-capital-cycle name (crypto, fintech, unrelated).",
-    "UNTAGGED": "Not yet classified. Add it to shared/ai_cycle.py to tag it.",
-}
+# Chart-only auto-collapse threshold: a thesis bucket holding less than this share of
+# total exposure rolls into "Other" ON THE CHART (donut/bars/footer) so slivers don't
+# clutter the read. Holdings keep their precise tag in the tables. 4% of exposure.
+BUCKET_COLLAPSE_PCT = 0.04
 
 # Column header tooltips for the positions tables (native title= hover, works offline).
 OPT_COL_HELP = {
@@ -45,7 +41,7 @@ OPT_COL_HELP = {
     "carry_pct_yr": "Annualized % the underlying must move in your favor just to break even on the leverage. Low = cheap (ITM/LEAP); high = expensive (deep OTM).",
     "extrinsic_value": "Time value at risk ($). This portion of the mark decays to zero by expiry if the underlying doesn't move.",
     "unrealized_pl": "Unrealized profit or loss versus your entry price.",
-    "cycle_bucket": "AI capital-cycle role. See the legend under the bucket chart above.",
+    "cycle_bucket": "Thesis bucket this name sits in. See the legend under the exposure-by-bucket chart above.",
     "verdict": "The tool's candid call for this leg, from the flags and economics.",
 }
 EQ_COL_HELP = {
@@ -57,7 +53,27 @@ EQ_COL_HELP = {
     "mv": "Market value = shares × price.",
     "weight_pct": "Position size as a percent of total portfolio value.",
     "unrealized_pl": "Unrealized profit or loss versus cost basis.",
-    "cycle_bucket": "AI capital-cycle role. See the legend under the bucket chart above.",
+    "cycle_bucket": "Thesis bucket this name sits in. See the legend under the exposure-by-bucket chart above.",
+}
+
+# Tooltips for each field in the per-option drilldown panel (keyed by the on-screen label).
+DRILL_HELP = {
+    "Spot": "Current price of the underlying stock/ETF.",
+    "Strike / DTE": "Strike price, and days to expiry (calendar days from today).",
+    "Moneyness": "Spot/strike for calls (strike/spot for puts). Above 1.0 = in the money.",
+    "% to strike": "How far the underlying must move to reach the strike. Negative means it's already past it (ITM).",
+    "Implied vol": "The volatility the option's price implies. Higher = pricier option and bigger expected swings.",
+    "Delta": "Per-share price sensitivity to the underlying, signed for your side. Also roughly the odds of finishing in the money.",
+    "Delta-$ (directional)": "Delta × 100 × contracts × spot. Your true dollar directional exposure through this leg.",
+    "Carry / yr": "Annualized % the underlying must move in your favor just to break even on the leverage. Low = cheap (ITM/LEAP); high = expensive (deep OTM).",
+    "Mark / Avg": "Current option price versus your average entry price, per share.",
+    "Market value": "Current dollar value of the position (mark × 100 × contracts). Negative for short legs.",
+    "Intrinsic / sh": "The in-the-money portion per share (real value if exercised now).",
+    "Extrinsic / sh": "The time-value portion per share. Decays to zero by expiry if the underlying doesn't move.",
+    "Extrinsic $ (at risk)": "Total time value in dollars that decays to zero absent a move in the underlying.",
+    "Extrinsic % of MV": "What share of this position's value is time value, i.e. the part at risk to decay.",
+    "Controlled notional": "Shares controlled × spot (100 × contracts × spot). Gross exposure, before delta-adjustment.",
+    "Unrealized P/L": "Mark-to-market gain or loss versus your entry price.",
 }
 
 
@@ -164,11 +180,26 @@ def _build_data(es: EnrichedSnapshot) -> dict:
     has_equities = bool(equities)
 
     # ---- whole-book exposure (equity MV + option delta-$), portfolio-agnostic ----
+    # pct is each bucket's SHARE OF TOTAL EXPOSURE (so the buckets compose to ~100%),
+    # not delta-$/NAV (which is a leverage ratio and can exceed 100% on a levered book).
     bucket_dv = es.exposure_by_bucket
-    buckets = [{"code": code, "label": BUCKET_LABELS.get(code, code),
-                "desc": BUCKET_DESC.get(code, ""), "delta_notional": round(dv),
-                "pct": round(dv / total * 100, 1)} for code, dv in bucket_dv.items()]
-    tagged_weight = sum(abs(v) for c, v in bucket_dv.items() if c not in ("NON", "UNTAGGED"))
+    total_exposure = sum(abs(v) for v in bucket_dv.values()) or 1.0
+    # Chart-only auto-collapse: any bucket below this share of total exposure is a
+    # sliver that clutters the donut/bars without changing the read, so it rolls into
+    # "Other" FOR THE CHART ONLY. Each holding keeps its precise tag in the tables
+    # below; this only affects the exposure-by-bucket visual and its footer summary.
+    collapsed = defaultdict(float)
+    for tid, dv in bucket_dv.items():
+        keep = tid if (tid == OTHER_ID or abs(dv) / total_exposure >= BUCKET_COLLAPSE_PCT) else OTHER_ID
+        collapsed[keep] += dv
+    buckets = [{"id": tid, "label": tag_label(tid), "color": tag_color(tid),
+                "desc": tag_desc(tid), "delta_notional": round(dv),
+                "pct": round(abs(dv) / total_exposure * 100, 1)} for tid, dv in collapsed.items()]
+    # sort by weight, keep "Other" last so the catch-all reads as the tail of the chart
+    buckets.sort(key=lambda b: (b["id"] == OTHER_ID, -abs(b["delta_notional"])))
+    # Show the bucket chart once a meaningful share of the book is in thesis buckets
+    # (i.e. not everything sitting in the "other" catch-all).
+    tagged_weight = sum(abs(v) for c, v in bucket_dv.items() if c != OTHER_ID)
     show_buckets = (tagged_weight / total) > 0.05
 
     exposure = [{"symbol": s, "delta_notional": round(v)}
@@ -246,6 +277,7 @@ def _build_data(es: EnrichedSnapshot) -> dict:
         "accounts": [{"name": a.name, "type": a.account_type, "total": round(a.total_value),
                       "cash": round(a.cash), "equity_value": round(a.equity_value),
                       "options_value": round(a.options_value)} for a in snap.accounts],
+        "taxonomy": taxonomy_map(),
         "buckets": buckets, "exposure": exposure, "expiry": expiry,
         "equities": equities, "positions": positions, "actions": actions,
     }
@@ -300,7 +332,13 @@ table{width:100%;border-collapse:collapse;font-size:12.5px}
 th,td{padding:8px 9px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
 th{color:var(--mut);font-weight:600;cursor:pointer;position:sticky;top:0;background:var(--panel);user-select:none}
 th:first-child,td:first-child{text-align:left}th.a-l{text-align:left}
-th[title]{text-decoration:underline dotted;text-underline-offset:3px;text-decoration-color:var(--line)}
+th[data-tip]{text-decoration:underline dotted;text-underline-offset:3px;text-decoration-color:var(--mut);cursor:pointer}
+[data-tip]{cursor:help}
+.stat .l[data-tip]{text-decoration:underline dotted;text-underline-offset:2px;text-decoration-color:var(--line)}
+.kpi .l[data-tip]{text-decoration:underline dotted;text-underline-offset:2px;text-decoration-color:var(--line)}
+#tt{position:fixed;z-index:200;max-width:290px;background:#0b0f14;border:1px solid var(--blu);
+color:var(--tx);padding:9px 11px;border-radius:8px;font-size:11.5px;line-height:1.5;
+box-shadow:0 8px 24px rgba(0,0,0,.55);pointer-events:none;display:none}
 tr.row{cursor:pointer}tr.row:hover td{background:var(--panel2)}
 .tag{font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px}
 .t-close,.t-derisk{background:#5a1717;color:#ff9d97}.t-now,.t-trim{background:#5a2a00;color:#ffb972}
@@ -318,14 +356,14 @@ tr.row{cursor:pointer}tr.row:hover td{background:var(--panel2)}
 .lgd span{display:inline-flex;align-items:center;gap:5px}.dot{width:9px;height:9px;border-radius:2px;display:inline-block}
 .blgd{margin-top:12px;border-top:1px solid var(--line);padding-top:10px;font-size:11.5px;color:var(--mut)}
 .blgd div{display:flex;gap:8px;padding:3px 0;align-items:flex-start}
-.blgd .code{font-weight:700;min-width:34px;flex:none}
-</style></head><body><div class="wrap">
+.blgd .code{font-weight:700;min-width:150px;flex:none}
+</style></head><body><div id="tt"></div><div class="wrap">
 <h1>Portfolio Dashboard</h1><div class="sub" id="sub"></div>
 <div class="kpis" id="kpis"></div>
 <div class="card full" style="margin-bottom:22px"><h3>Prioritized actions</h3><ul class="actions" id="actions"></ul></div>
 <div class="grid">
   <div class="card" id="card-alloc"><h3>Asset allocation</h3><div id="alloc"></div><div class="lgd" id="alloc-lgd"></div></div>
-  <div class="card" id="card-buckets"><h3>Exposure by AI-cycle bucket <span class="muted">(whole book: equity + option delta-$)</span></h3><div id="buckets"></div><div class="blgd" id="buckets-lgd"></div></div>
+  <div class="card" id="card-buckets"><h3>Exposure by thesis bucket <span class="muted">(whole book: equity + option delta-$)</span></h3><div id="buckets"></div><div class="blgd" id="buckets-lgd"></div></div>
   <div class="card" id="card-scatter"><h3>Moneyness vs. days-to-expiry <span class="muted">(bubble = delta-$)</span></h3><div id="scatter"></div></div>
   <div class="card" id="card-exposure"><h3>Exposure by holding <span class="muted">(equity value + option delta-$, top 14)</span></h3><div id="exposure"></div></div>
   <div class="card full" id="card-expiry"><h3>Expiry wall: intrinsic (real) vs. extrinsic (decaying)</h3><div id="expiry"></div>
@@ -358,8 +396,25 @@ function pct(n,d){return n==null?'—':(n).toFixed(d==null?1:d)+'%';}
 function num(n,d){return n==null?'—':n.toFixed(d==null?2:d);}
 const clr=v=>v>0?'pos':v<0?'neg':'';
 const hide=id=>{const e=document.getElementById(id);if(e)e.style.display='none';};
-const BC={G1:'#58a6ff',G2:'#bc8cff',G3A:'#e3934f',G3B:'#f85149',NON:'#8b949e',UNTAGGED:'#e3b341'};
+// Bucket labels/colors come from the taxonomy in the data payload (thesis-driven,
+// editable in tags.json), not hardcoded codes.
+const TAX=D.taxonomy||{};
+const tlabel=id=>(TAX[id]&&TAX[id].label)||id;
+const tcolor=id=>(TAX[id]&&TAX[id].color)||'#8b949e';
+const DTIP=/*__DRILLHELP__*/;
 const S=D.shape,T=D.totals;
+
+// ---- visible hover tooltips (native title= is too subtle) ----
+(function(){const TT=document.getElementById('tt');
+ const esc=s=>(s==null?'':String(s));
+ document.addEventListener('mouseover',e=>{const t=e.target.closest('[data-tip]');
+  if(!t||!t.getAttribute('data-tip')){return;}TT.textContent=t.getAttribute('data-tip');TT.style.display='block';});
+ document.addEventListener('mousemove',e=>{if(TT.style.display!=='block')return;
+  let x=e.clientX+14,y=e.clientY+16;const w=TT.offsetWidth,h=TT.offsetHeight;
+  if(x+w+8>innerWidth)x=e.clientX-w-14;if(y+h+8>innerHeight)y=e.clientY-h-14;
+  TT.style.left=Math.max(4,x)+'px';TT.style.top=Math.max(4,y)+'px';});
+ document.addEventListener('mouseout',e=>{if(e.target.closest('[data-tip]'))TT.style.display='none';});
+})();
 
 // ---- header / KPIs ----
 document.getElementById('sub').innerHTML=`Snapshot ${D.meta.timestamp?D.meta.timestamp.slice(0,16):''} · source ${D.meta.source||'—'} · generated ${D.meta.generated}`;
@@ -379,7 +434,7 @@ if(S.has_options){
 }
 kpis.push(['Unrealized P/L',money(T.opt_pl+T.eq_pl),plHint,clr(T.opt_pl+T.eq_pl),'Mark-to-market gain/loss versus cost across the whole book.']);
 kpis.push(['Cash',money(T.cash),`${T.cash_pct}% dry powder`,T.cash_pct<10?'warn':'','Uninvested cash across all accounts.']);
-document.getElementById('kpis').innerHTML=kpis.map(x=>`<div class="kpi"><div class="l" title="${x[4]||''}">${x[0]}</div><div class="v ${x[3]}">${x[1]}</div><div class="h">${x[2]}</div></div>`).join('');
+document.getElementById('kpis').innerHTML=kpis.map(x=>`<div class="kpi"><div class="l" data-tip="${x[4]||''}">${x[0]}</div><div class="v ${x[3]}">${x[1]}</div><div class="h">${x[2]}</div></div>`).join('');
 
 // ---- actions ----
 const bmap={'THIS WEEK':'b-week','DE-RISK':'b-derisk','CONCENTRATION':'b-conc','LIQUIDITY':'b-liq','LEVERAGE':'b-lev','OK':'b-ok'};
@@ -406,8 +461,8 @@ function txt(x,y,s,a,p,cls){const t=el('text',{x,y,fill:cls||'#8b949e','font-siz
 })();
 
 // horizontal bars generic
-function hbars(elid,rows,fmt){const W=560,rowH=26,H=Math.max(rowH+14,rows.length*rowH+14);const s=svg(W,H);
- const max=Math.max(1,...rows.map(r=>Math.abs(r.v)));const lblW=52,x0=lblW+6,bw=W-x0-70;
+function hbars(elid,rows,fmt,lblW){lblW=lblW||52;const W=560,rowH=26,H=Math.max(rowH+14,rows.length*rowH+14);const s=svg(W,H);
+ const max=Math.max(1,...rows.map(r=>Math.abs(r.v)));const x0=lblW+6,bw=W-x0-70;
  rows.forEach((r,i)=>{const y=i*rowH+8;txt(lblW,y+13,r.label,{anchor:'end',fs:11},s,'#e6edf3');
   const w=Math.abs(r.v)/max*bw;el('rect',{x:x0,y:y+3,width:w,height:16,rx:3,fill:r.color||'#8172b3'},s);
   txt(x0+w+5,y+15,fmt(r.v),{fs:10},s,'#8b949e');});
@@ -415,9 +470,9 @@ function hbars(elid,rows,fmt){const W=560,rowH=26,H=Math.max(rowH+14,rows.length
 
 // bucket chart + on-page legend (only when the book actually tilts into AI-cycle buckets)
 if(S.show_buckets&&D.buckets.length){
- hbars('buckets',D.buckets.map(b=>({label:b.code,v:b.delta_notional,color:BC[b.code]||'#8172b3'})),v=>k(v)+'');
+ hbars('buckets',D.buckets.map(b=>({label:b.label,v:b.delta_notional,color:b.color||'#8172b3'})),v=>k(v)+'',128);
  document.getElementById('buckets-lgd').innerHTML=D.buckets.map(b=>
-  `<div><span class="code" style="color:${BC[b.code]||'#8b949e'}">${b.code}</span><span>${b.desc||b.label}</span></div>`).join('');
+  `<div><span class="code" style="color:${b.color||'#8b949e'}">${b.label} <span class="muted">(${b.pct}%)</span></span><span>${b.desc||b.label}</span></div>`).join('');
 }else{hide('card-buckets');}
 
 // exposure by holding (equity value + option delta-$), meaningful for any book
@@ -459,7 +514,7 @@ const EQH=/*__EQHELP__*/;
 if(S.has_equities&&D.equities.length){
  const cols=[['symbol','Ticker','a-l'],['account','Account','a-l'],['qty','Qty',''],['price','Price',''],
   ['avg_cost','Avg cost',''],['mv','Market value',''],['weight_pct','Weight',''],['unrealized_pl','P/L',''],['cycle_bucket','Bucket','a-l']];
- document.getElementById('eqhead').innerHTML=cols.map(c=>`<th class="${c[2]}" data-k="${c[0]}" title="${EQH[c[0]]||''}">${c[1]}</th>`).join('');
+ document.getElementById('eqhead').innerHTML=cols.map(c=>`<th class="${c[2]}" data-k="${c[0]}" data-tip="${EQH[c[0]]||''}">${c[1]}</th>`).join('');
  let EQSORT={k:'mv',dir:-1};
  const eqtb=document.getElementById('eqtb');
  function eqRender(){const rows=D.equities.slice().sort((a,b)=>{let x=a[EQSORT.k],y=b[EQSORT.k];if(x==null)x=-Infinity;if(y==null)y=-Infinity;
@@ -469,7 +524,7 @@ if(S.has_equities&&D.equities.length){
    <td>${e.qty}</td><td>${money(e.price)}</td><td>${e.avg_cost==null?'n/a':money(e.avg_cost)}</td>
    <td>${money(e.mv)}</td><td>${e.weight_pct}%</td>
    <td class="${clr(e.unrealized_pl)}">${e.unrealized_pl==null?'n/a':money(e.unrealized_pl)}</td>
-   <td class="a-l"><span style="color:${BC[e.cycle_bucket]||'#8b949e'}">●</span> ${e.cycle_bucket}</td></tr>`).join('');}
+   <td class="a-l"><span style="color:${tcolor(e.cycle_bucket)}">●</span> ${tlabel(e.cycle_bucket)}</td></tr>`).join('');}
  document.querySelectorAll('#eqtbl th[data-k]').forEach(th=>th.onclick=()=>{const key=th.dataset.k;EQSORT.dir=EQSORT.k===key?-EQSORT.dir:-1;EQSORT.k=key;eqRender();});
  eqRender();
 }else{hide('card-equities');}
@@ -480,7 +535,7 @@ if(S.has_options&&D.positions.length){
  const ocols=[['symbol','Ticker','a-l'],['strike','Strike',''],['expiration','Exp','a-l'],['dte','DTE',''],['qty','Qty',''],
   ['mark','Mark',''],['mv','MV',''],['moneyness','Mny',''],['delta','Δ',''],['delta_notional','Δ-$',''],
   ['carry_pct_yr','Carry/yr',''],['extrinsic_value','Extrinsic',''],['unrealized_pl','P/L',''],['cycle_bucket','Bucket','a-l'],['verdict','Verdict','a-l']];
- document.getElementById('opthead').innerHTML=ocols.map(c=>`<th class="${c[2]}" data-k="${c[0]}" title="${OPTH[c[0]]||''}">${c[1]}</th>`).join('');
+ document.getElementById('opthead').innerHTML=ocols.map(c=>`<th class="${c[2]}" data-k="${c[0]}" data-tip="${OPTH[c[0]]||''}">${c[1]}</th>`).join('');
  let SORT={k:'mv',dir:-1},FILTERS=new Set(),Q='';
  const tb=document.getElementById('tb');
  function verdictCls(v){return v==='CLOSE / ROLL'||v==='DE-RISK'?'t-close':v==='DECIDE NOW'||v==='TRIM / ROLL'?'t-now':v==='CORE HOLD'?'t-core':'t-hold';}
@@ -493,7 +548,7 @@ if(S.has_options&&D.positions.length){
    <td>${num(p.moneyness)}</td><td>${num(p.delta)}</td><td>${k(p.delta_notional)}</td>
    <td class="${(p.carry_pct_yr||0)>40?'warn':''}">${p.carry_pct_yr==null?'—':p.carry_pct_yr.toFixed(0)+'%'}</td>
    <td>${k(p.extrinsic_value)}</td><td class="${clr(p.unrealized_pl)}">${p.unrealized_pl==null?'n/a':k(p.unrealized_pl)}</td>
-   <td class="a-l"><span style="color:${BC[p.cycle_bucket]||'#8b949e'}">●</span> ${p.cycle_bucket}</td>
+   <td class="a-l"><span style="color:${tcolor(p.cycle_bucket)}">●</span> ${tlabel(p.cycle_bucket)}</td>
    <td class="a-l"><span class="tag ${verdictCls(p.verdict)}">${p.verdict}</span></td></tr>
    <tr class="drill" id="dr-${i}" style="display:none"><td colspan="15"><div class="dwrap">
     <div class="why"><b>${p.verdict}.</b> ${p.why} ${fl}</div>
@@ -507,7 +562,7 @@ if(S.has_options&&D.positions.length){
      ${stat('Extrinsic $ (at risk)',money(p.extrinsic_value))}${stat('Extrinsic % of MV',pct(p.extrinsic_pct_mv==null?null:p.extrinsic_pct_mv*100))}
      ${stat('Controlled notional',money(p.notional))}${stat('Unrealized P/L',p.unrealized_pl==null?'n/a':money(p.unrealized_pl))}
     </div></div></td></tr>`;}
- function stat(l,v){return `<div class="stat"><div class="l">${l}</div><div class="v">${v}</div></div>`;}
+ function stat(l,v){const tip=(DTIP[l]||'').replace(/"/g,'&quot;');return `<div class="stat"><div class="l" data-tip="${tip}">${l}</div><div class="v">${v}</div></div>`;}
  function render(){
   let rows=D.positions.map((p,i)=>[p,i]);
   if(Q)rows=rows.filter(([p])=>p.symbol.toLowerCase().includes(Q));
@@ -528,10 +583,11 @@ const nEq=new Set(D.equities.map(e=>e.symbol)).size,nOpt=D.positions.length;
 let footParts=[];
 if(nEq)footParts.push(`${nEq} equit${nEq===1?'y':'ies'}`);
 if(nOpt)footParts.push(`${nOpt} option leg${nOpt===1?'':'s'}`);
-if(S.show_buckets&&D.buckets.length)footParts.push('buckets: '+D.buckets.map(b=>`${b.code} ${b.pct}%`).join(' · '));
+if(S.show_buckets&&D.buckets.length)footParts.push('buckets: '+D.buckets.map(b=>`${b.label} ${b.pct}%`).join(' · '));
 document.getElementById('foot').textContent=footParts.join(' · ');
 </script></body></html>"""
 
 _TEMPLATE = (_TEMPLATE
              .replace("/*__EQHELP__*/", json.dumps(EQ_COL_HELP))
-             .replace("/*__OPTHELP__*/", json.dumps(OPT_COL_HELP)))
+             .replace("/*__OPTHELP__*/", json.dumps(OPT_COL_HELP))
+             .replace("/*__DRILLHELP__*/", json.dumps(DRILL_HELP)))
